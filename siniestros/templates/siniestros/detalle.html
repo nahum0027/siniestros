@@ -1,0 +1,167 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}{{ s.folio }}{% endblock %}
+{% block nav_lista %}act{% endblock %}
+{% block estilos %}
+.volver{display:inline-block;margin:0 0 10px;font-weight:600;text-decoration:none}
+.cab{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start;margin:0 0 14px}
+.cab .folio{font-family:ui-monospace,Consolas,monospace;font-size:20px;font-weight:800;color:var(--pri);margin:0}
+.cab .acciones{display:flex;gap:8px;flex-wrap:wrap}
+.rejilla{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.rejilla{grid-template-columns:1fr}}
+dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 16px;margin:0}
+dt{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 2px}
+dd{margin:0;font-weight:500;word-break:break-word}
+dd.vacio-c{color:#a3b0ba;font-weight:400}
+.ancho{grid-column:1/-1}
+.narr{white-space:pre-wrap;background:#f7f9fb;border-radius:10px;padding:12px;margin:0}
+.doc{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;text-decoration:none;color:var(--ink);font-weight:600}
+.doc:hover{border-color:var(--pri-2)}
+.doc span{color:var(--pri-2);font-size:13px}
+.imgs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.imgs figure{margin:0}
+.imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
+.imgs figure.grande{grid-column:1/-1}
+.imgs figcaption{font-size:12px;color:var(--muted);margin-top:4px}
+.estado-box{display:flex;flex-direction:column;gap:8px}
+.estado-box .linea{display:flex;justify-content:space-between;font-size:14px;gap:8px}
+.estado-box .linea span:first-child{color:var(--muted)}
+.hist{list-style:none;margin:0;padding:0}
+.hist>li{position:relative;padding:0 0 16px 22px;border-left:2px solid var(--line-2);margin-left:6px}
+.hist>li:last-child{border-color:transparent;padding-bottom:0}
+.hist>li::before{content:"";position:absolute;left:-7px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--pri-2);border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.hist>li.EDITADO::before{background:#c98a14}
+.hist>li.ESTADO::before{background:var(--ok)}
+.hist>li.CORREO::before{background:#9fb0bd}
+.hist .quien{font-weight:650}
+.hist .cuando{color:var(--muted);font-size:13px}
+.diff{margin:8px 0 0;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;font-size:13px}
+.diff div{display:grid;grid-template-columns:minmax(110px,.9fr) 1fr 1fr;gap:8px;padding:6px 8px;border-top:1px solid var(--line-2)}
+.diff div:first-child{border:0;background:#f7f9fb;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.diff .antes{color:var(--bad);text-decoration:line-through;word-break:break-word}
+.diff .despues{color:var(--ok);font-weight:600;word-break:break-word}
+.reabrir{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.reabrir input{flex:1;min-width:160px}
+{% endblock %}
+{% block contenido %}
+<a class="volver" href="{% url 'lista' %}">← {% if revisor %}Reportes{% else %}Mis reportes{% endif %}</a>
+{% if guardado %}<div class="msg success">Cambios guardados: {{ guardado }} campo(s) corregido(s). Los formatos se volvieron a generar.</div>{% endif %}
+{% if sin_cambios %}<div class="msg info">No había cambios que guardar.</div>{% endif %}
+
+<div class="cab">
+  <div>
+    <p class="folio">{{ s.folio }}</p>
+    <span class="badge {{ s.estado }}">{{ s.get_estado_display }}</span>
+    <span class="tenue" style="color:var(--muted);font-size:13px;margin-left:6px">Capturado por {{ s.capturado_por.get_full_name|default:s.capturado_por.username }} · {{ s.creado|date:"d/m/Y H:i" }}</span>
+  </div>
+  <div class="acciones">
+    {% if puede_editar %}
+      <a class="btn pri" href="{% url 'editar' s.folio %}">Editar / corregir</a>
+      <form method="post" action="{% url 'estado' s.folio %}" onsubmit="return confirm('Al validar, el reporte queda bloqueado y ya no se puede editar. ¿Continuar?')">{% csrf_token %}
+        <input type="hidden" name="accion" value="validar"><button class="btn ok" type="submit">Validar</button>
+      </form>
+    {% elif s.bloqueado %}
+      <span class="msg success" style="margin:0;padding:8px 12px">🔒 Validado por {{ s.validado_por.get_full_name|default:s.validado_por.username }} el {{ s.validado_en|date:"d/m/Y H:i" }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="rejilla">
+  <div>
+    <section class="card"><h2>Datos generales</h2><dl>
+      <div><dt>Fecha y hora</dt><dd>{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} {{ d.hora }}</dd></div>
+      <div><dt>Ruta / económico</dt><dd>{{ d.ruta|default:"—" }} / {{ d.economico|default:"—" }}</dd></div>
+      <div><dt>Competencia</dt><dd>{{ d.competencia|default:"—" }}{% if d.competencia_otro %} ({{ d.competencia_otro }}){% endif %}</dd></div>
+      <div><dt>Reporte aseguradora</dt><dd>{{ d.reporte_aseguradora|default:"—" }}</dd></div>
+      <div class="ancho"><dt>Lugar</dt><dd>{{ d.lugar|default:"—" }}{% if d.colonia %} · {{ d.colonia }}{% endif %}</dd></div>
+    </dl></section>
+
+    <section class="card"><h2>Partícipe A · Ejecutivo(a)</h2><dl>
+      <div class="ancho"><dt>Nombre</dt><dd>{{ d.a.nombre|default:"—" }}</dd></div>
+      <div><dt>No. empleado</dt><dd>{{ d.a.no_empleado|default:"—" }}</dd></div>
+      <div><dt>Teléfono</dt><dd>{{ d.a.telefono|default:"—" }}</dd></div>
+      <div><dt>Edad / sexo</dt><dd>{{ d.a.edad|default:"—" }} / {{ d.a.sexo|default:"—" }}</dd></div>
+      <div><dt>Licencia / vigencia</dt><dd>{{ d.a.licencia|default:"—" }} / {{ d.a.vigencia|default:"—" }}</dd></div>
+      <div><dt>Tarjetón</dt><dd>{{ d.a.tarjeton|default:"—" }}</dd></div>
+      <div><dt>Placas / modelo</dt><dd>{{ d.a.placas|default:"—" }} / {{ d.a.modelo|default:"—" }}</dd></div>
+      <div><dt>Trayectoria</dt><dd>{{ d.a.trayectoria|default:"—" }}</dd></div>
+      <div><dt>Estado</dt><dd>{% if d.a.fallecido %}Fallecido{% elif d.a.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
+    </dl></section>
+
+    <section class="card"><h2>Partícipe B</h2><dl>
+      <div class="ancho"><dt>Nombre</dt><dd>{{ d.b.nombre|default:"—" }}</dd></div>
+      <div><dt>Teléfono</dt><dd>{{ d.b.telefono|default:"—" }}</dd></div>
+      <div><dt>Edad / sexo</dt><dd>{{ d.b.edad|default:"—" }} / {{ d.b.sexo|default:"—" }}</dd></div>
+      <div><dt>Vehículo</dt><dd>{{ d.b.marca|default:"—" }} {{ d.b.modelo|default:"" }}</dd></div>
+      <div><dt>Placas</dt><dd>{{ d.b.placas|default:"—" }} ({{ d.b.entidad|default:"—" }})</dd></div>
+      <div><dt>Seguro</dt><dd>{{ d.b.seguro|default:"—" }}</dd></div>
+      <div><dt>Estado</dt><dd>{% if d.b.fallecido %}Fallecido{% elif d.b.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
+    </dl></section>
+
+    {% if d.lesionados %}
+    <section class="card"><h2>Lesionados</h2><dl>
+      {% for l in d.lesionados %}{% if l.nombre %}
+      <div class="ancho"><dt>{{ forloop.counter }}. {{ l.nombre }}</dt><dd>{{ l.direccion|default:"" }} {% if l.telefono %}· {{ l.telefono }}{% endif %} {% if l.pase_medico %}· Pase {{ l.pase_medico }}{% endif %} {% if l.trasladado_a %}· Trasladado a {{ l.trasladado_a }}{% endif %}</dd></div>
+      {% endif %}{% endfor %}
+    </dl></section>
+    {% endif %}
+
+    <section class="card"><h2>Generalidades y entrevista</h2><dl>
+      <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
+      <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>
+      <div><dt>Unidad responsable</dt><dd>{{ d.responsable|default:"—" }}</dd></div>
+      <div><dt>Medio de prueba</dt><dd>{{ d.medio_prueba|default:"—" }}</dd></div>
+      <div><dt>Seguro activado</dt><dd>{{ d.seguro_activo|default:"—" }}</dd></div>
+      <div><dt>Pases médicos</dt><dd>{{ d.pases_medicos|default:"—" }}</dd></div>
+      <div><dt>Convenio</dt><dd>{% if d.aplica_convenio %}Sí — {{ d.forma_reparacion }}{% else %}No{% endif %}</dd></div>
+      {% if d.alcohol %}<div><dt>Alcohol / sustancias</dt><dd style="color:var(--bad)">Sí</dd></div>{% endif %}
+      <div class="ancho"><dt>Redacción de hechos</dt><dd><p class="narr">{{ d.narrativa|default:"—" }}</p></dd></div>
+    </dl></section>
+  </div>
+
+  <div>
+    <section class="card"><h2>Formatos</h2>
+      {% for doc in s.documentos %}
+        <a class="doc" href="{% url 'descargar' s.folio doc %}">{{ doc }}<span>Descargar ↓</span></a>
+      {% empty %}<p class="vacio" style="padding:10px">Sin formatos generados.</p>{% endfor %}
+      {% if s.correo_error %}<div class="msg error" style="margin:8px 0 0;font-size:13px">El correo no se pudo enviar: {{ s.correo_error|truncatechars:160 }}</div>
+      {% elif s.correo_enviado_en %}<p style="color:var(--muted);font-size:13px;margin:8px 0 0">Correo enviado el {{ s.correo_enviado_en|date:"d/m/Y H:i" }}</p>{% endif %}
+    </section>
+
+    {% if imagenes %}
+    <section class="card"><h2>Croquis y firmas</h2><div class="imgs">
+      {% for n, etiqueta in imagenes %}
+        <figure class="{% if n == 'croquis' %}grande{% endif %}"><img src="{% url 'imagen' s.folio n %}" alt="{{ etiqueta }}" loading="lazy"><figcaption>{{ etiqueta }}</figcaption></figure>
+      {% endfor %}
+    </div></section>
+    {% endif %}
+
+    {% if puede_reabrir %}
+    <section class="card"><h2>Reabrir</h2>
+      <p style="margin:0;color:var(--muted);font-size:14px">Solo si hay que corregir algo después de validado. Queda en el historial.</p>
+      <form class="reabrir" method="post" action="{% url 'estado' s.folio %}">{% csrf_token %}
+        <input type="hidden" name="accion" value="reabrir">
+        <input name="motivo" placeholder="Motivo (obligatorio)" required maxlength="200">
+        <button class="btn bad" type="submit">Reabrir</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <section class="card"><h2>Historial</h2>
+      <ul class="hist">
+      {% for c in cambios %}
+        <li class="{{ c.tipo }}">
+          <div><span class="quien">{% if c.usuario %}{{ c.usuario.get_full_name|default:c.usuario.username }}{% else %}Sistema{% endif %}</span> · {{ c.descripcion|default:c.get_tipo_display }}</div>
+          <div class="cuando">{{ c.fecha|date:"d/m/Y H:i" }}</div>
+          {% if c.detalle %}
+          <div class="diff">
+            <div><span>Campo</span><span>Antes</span><span>Después</span></div>
+            {% for x in c.detalle %}<div><span>{{ x.etiqueta }}</span><span class="antes">{{ x.antes|default:"(vacío)"|truncatechars:120 }}</span><span class="despues">{{ x.despues|default:"(vacío)"|truncatechars:120 }}</span></div>{% endfor %}
+          </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

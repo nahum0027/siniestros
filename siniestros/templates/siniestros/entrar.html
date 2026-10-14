@@ -1,0 +1,27 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block estilos %}
+.entrar{max-width:380px;margin:6vh auto 0}
+.entrar label{display:block;font-weight:600;color:var(--muted);font-size:14px;margin:0 0 5px}
+.entrar input{width:100%;font-size:17px;min-height:48px;margin:0 0 14px}
+.entrar .btn{width:100%;min-height:48px;font-size:16px}
+{% endblock %}
+{% block contenido %}
+<div class="entrar">
+  <div class="card" style="padding:22px">
+    <h1>Siniestros</h1>
+    <p class="sub">Entra con tu usuario para capturar o consultar reportes.</p>
+    {% if form.errors %}<div class="msg error">Usuario o contraseña incorrectos.</div>{% endif %}
+    {% if next and user.is_authenticated %}<div class="msg info">Tu usuario no tiene permiso para esa sección.</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <label for="id_username">Usuario</label>
+      <input id="id_username" name="username" autocomplete="username" autocapitalize="none" required autofocus value="{{ form.username.value|default:'' }}">
+      <label for="id_password">Contraseña</label>
+      <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn pri" type="submit">Entrar</button>
+    </form>
+  </div>
+  <p class="sub" style="text-align:center;font-size:13px">¿Olvidaste tu contraseña? Pídela al administrador del sistema.</p>
+</div>
+{% endblock %}

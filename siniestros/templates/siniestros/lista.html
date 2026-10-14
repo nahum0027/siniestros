@@ -1,0 +1,97 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}Reportes{% endblock %}
+{% block nav_lista %}act{% endblock %}
+{% block estilos %}
+.cab{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.chip{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border-radius:999px;background:#fff;border:1.5px solid var(--line);text-decoration:none;color:var(--ink);font-weight:600;font-size:14px}
+.chip b{font-variant-numeric:tabular-nums;color:var(--muted)}
+.chip.act{border-color:var(--pri);background:var(--pri);color:#fff}
+.chip.act b{color:#fff}
+.filtros{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}
+.filtros label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+.filtros input{width:100%}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line-2);vertical-align:top}
+tr.fila{cursor:pointer}
+tr.fila:hover td{background:#f7f9fb}
+.folio{font-family:ui-monospace,Consolas,monospace;font-size:13px;font-weight:700;color:var(--pri);text-decoration:none}
+.tenue{color:var(--muted);font-size:13px}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tarjetas{display:none}
+.pag{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px}
+@media (max-width:760px){
+  .filtros{grid-template-columns:1fr 1fr}
+  .filtros .q{grid-column:1/-1}
+  table{display:none}
+  .tarjetas{display:block}
+  .tj{display:block;text-decoration:none;color:var(--ink);border-bottom:1px solid var(--line-2);padding:12px 2px}
+  .tj:last-child{border:0}
+  .tj .l1{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:0 0 4px}
+}
+{% endblock %}
+{% block contenido %}
+<div class="cab">
+  <div>
+    <h1>{% if revisor %}Reportes de siniestros{% else %}Mis reportes{% endif %}</h1>
+    <p class="sub" style="margin:0">{% if revisor %}Todos los reportes capturados en campo.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
+  </div>
+  {% if puede_capturar %}<a class="btn pri" href="{% url 'formulario' %}">+ Capturar siniestro</a>{% endif %}
+</div>
+
+<div class="chips">
+  <a class="chip {% if not estado %}act{% endif %}" href="?q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Todos <b>{{ total }}</b></a>
+  {% for valor, nombre, n in estados %}
+    <a class="chip {% if estado == valor %}act{% endif %}" href="?estado={{ valor }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">{{ nombre }} <b>{{ n }}</b></a>
+  {% endfor %}
+</div>
+
+<form class="card filtros" method="get">
+  <input type="hidden" name="estado" value="{{ estado }}">
+  <div class="q"><label for="q">Buscar</label><input id="q" name="q" value="{{ q }}" placeholder="Folio, ruta, económico, ejecutivo o lugar"></div>
+  <div><label for="desde">Desde</label><input id="desde" type="date" name="desde" value="{{ desde }}"></div>
+  <div><label for="hasta">Hasta</label><input id="hasta" type="date" name="hasta" value="{{ hasta }}"></div>
+  <div style="display:flex;gap:6px"><button class="btn pri" type="submit">Buscar</button>{% if q or desde or hasta %}<a class="btn sec" href="?estado={{ estado }}">Limpiar</a>{% endif %}</div>
+</form>
+
+<div class="card" style="padding:6px 10px">
+  {% if pagina.object_list %}
+  <table>
+    <thead><tr><th>Folio</th><th>Fecha del hecho</th><th>Ruta / Eco.</th><th>Ejecutivo(a)</th><th>Lugar</th>{% if revisor %}<th>Capturó</th>{% endif %}<th>Estado</th></tr></thead>
+    <tbody>
+    {% for s in pagina %}
+      <tr class="fila" onclick="location.href='{% url 'detalle' s.folio %}'">
+        <td><a class="folio" href="{% url 'detalle' s.folio %}">{{ s.folio }}</a></td>
+        <td class="num">{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} <span class="tenue">{{ s.datos.hora }}</span></td>
+        <td class="num">{{ s.ruta|default:"—" }} / {{ s.economico|default:"—" }}</td>
+        <td>{{ s.ejecutivo|default:"—" }}</td>
+        <td class="tenue">{{ s.lugar|truncatechars:60|default:"—" }}</td>
+        {% if revisor %}<td class="tenue">{{ s.capturado_por.get_full_name|default:s.capturado_por.username }}</td>{% endif %}
+        <td><span class="badge {{ s.estado }}">{{ s.get_estado_display }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="tarjetas">
+    {% for s in pagina %}
+      <a class="tj" href="{% url 'detalle' s.folio %}">
+        <div class="l1"><span class="folio">{{ s.folio }}</span><span class="badge {{ s.estado }}">{{ s.get_estado_display }}</span></div>
+        <div>{{ s.ejecutivo|default:"—" }} · Ruta {{ s.ruta|default:"—" }}</div>
+        <div class="tenue">{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} {{ s.datos.hora }} · {{ s.lugar|truncatechars:50 }}</div>
+      </a>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="vacio">No hay reportes {% if q or estado or desde or hasta %}con esos filtros{% else %}todavía{% endif %}.</div>
+  {% endif %}
+</div>
+
+{% if pagina.paginator.num_pages > 1 %}
+<div class="pag">
+  {% if pagina.has_previous %}<a class="btn sec" href="?p={{ pagina.previous_page_number }}&estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">← Anterior</a>{% endif %}
+  <span class="tenue">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}<a class="btn sec" href="?p={{ pagina.next_page_number }}&estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Siguiente →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

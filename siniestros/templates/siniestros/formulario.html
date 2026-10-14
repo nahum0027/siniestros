@@ -1,0 +1,745 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f3d5e">
+<title>Siniestros CCPOTEQ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="{% static 'siniestros/icon-192.png' %}">
+<link rel="apple-touch-icon" href="{% static 'siniestros/icon-192.png' %}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+{{ cfg|json_script:"cfg" }}
+<input type="hidden" id="csrfInicial" value="{{ csrf_token }}">
+{% verbatim %}
+<style>
+:root{
+  --bg:#eef1f4; --card:#fff; --ink:#15212b; --muted:#5b6b78; --line:#d5dce2;
+  --pri:#0f3d5e; --pri-2:#1b5b86; --pri-soft:#e3edf5;
+  --ok:#11735a; --ok-soft:#e1f3ec; --warn:#9a5b00; --warn-soft:#fff3dc; --bad:#b42318; --bad-soft:#fde8e6;
+  --r:12px; color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:20;background:var(--pri);color:#fff;padding:10px 16px 12px;padding-top:calc(10px + env(safe-area-inset-top));box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.marca{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.15)}
+.marca img{height:38px;width:auto;display:block}
+.marca a{color:#fff;font-size:13px;font-weight:700;text-decoration:none;border:1.5px solid rgba(255,255,255,.45);border-radius:999px;padding:7px 12px;white-space:nowrap}
+@media (max-width:360px){.marca img{height:32px}}
+.titulo-paso{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:2px}
+.titulo-paso h1{font-size:20px;margin:0;font-weight:650}
+.titulo-paso span{font-size:13px;opacity:.8;white-space:nowrap}
+header>*{max-width:688px;margin-left:auto;margin-right:auto}
+.barras{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:10px}
+.barras button{height:6px;border:0;border-radius:3px;background:rgba(255,255,255,.25);padding:0;cursor:pointer}
+.barras button.hecho{background:rgba(255,255,255,.6)}
+.barras button.actual{background:#fff}
+main{max-width:720px;margin:0 auto;padding:12px 16px}
+.aviso{border-radius:var(--r);padding:12px 14px;margin:0 0 12px;font-size:15px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.aviso.warn{background:var(--warn-soft);color:var(--warn)}
+.aviso.ok{background:var(--ok-soft);color:var(--ok)}
+.aviso.bad{background:var(--bad-soft);color:var(--bad)}
+.aviso.info{background:var(--pri-soft);color:var(--pri)}
+.paso{display:none}
+.paso.activo{display:block}
+fieldset{border:0;background:var(--card);border-radius:var(--r);padding:14px 14px 4px;margin:0 0 12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+legend{float:left;width:100%;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--pri-2);margin:0 0 10px}
+legend+*{clear:both}
+.campo{margin:0 0 12px}
+.campo>label,.etq{display:block;font-size:14px;font-weight:600;color:var(--muted);margin:0 0 5px}
+.req::after{content:" *";color:var(--bad)}
+input[type=text],input[type=tel],input[type=date],input[type=time],input[type=number],select,textarea{
+  width:100%;font:inherit;font-size:17px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;min-height:48px;appearance:none;-webkit-appearance:none}
+textarea{min-height:180px;resize:vertical;line-height:1.45}
+input:focus,select,textarea:focus{outline:none}
+input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--pri-soft)}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.fila3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 10px}
+@media (max-width:380px){.fila3{grid-template-columns:1fr 1fr}}
+.ayuda{font-size:13px;color:var(--muted);margin:-6px 0 12px}
+/* control segmentado */
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{flex:1 1 0;min-width:64px;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:flex;align-items:center;justify-content:center;min-height:46px;padding:6px 10px;border:1.5px solid var(--line);border-radius:10px;font-weight:600;font-size:15px;color:var(--muted);background:#fff;text-align:center}
+.seg input:checked+span{background:var(--pri);border-color:var(--pri);color:#fff}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px var(--pri-soft)}
+/* checks grandes */
+.chk{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 10px;background:#fff;font-weight:600}
+.chk input{width:24px;height:24px;accent-color:var(--bad);flex:none}
+.chk.on{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+/* lesionados / anexos */
+.tarjeta{border:1.5px solid var(--line);border-radius:10px;padding:12px 12px 2px;margin:0 0 10px;background:#fbfcfd}
+.tarjeta-tit{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;font-weight:700}
+.anexo-nombre{font-weight:600;font-size:15px;margin:0 0 8px}
+/* botones */
+.btn{font:inherit;font-weight:650;font-size:16px;border-radius:10px;min-height:48px;padding:10px 16px;border:1.5px solid var(--pri);background:#fff;color:var(--pri);cursor:pointer}
+.btn.pri{background:var(--pri);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.peq{min-height:38px;padding:6px 12px;font-size:14px}
+.btn.quitar{border-color:var(--line);color:var(--bad)}
+.btn:disabled{opacity:.45}
+.btn.ancho{width:100%}
+footer{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center}
+footer .btn{flex:1;max-width:340px}
+/* lienzos */
+.lienzo{position:relative;border:1.5px dashed #9fb0bd;border-radius:10px;background:#fff;overflow:hidden;touch-action:none}
+.lienzo canvas{display:block;width:100%;height:auto;touch-action:none}
+.lienzo .marca-agua{position:absolute;left:12px;bottom:8px;font-size:12px;color:#9fb0bd;pointer-events:none}
+.lienzo.firma .linea{position:absolute;left:8%;right:8%;bottom:26%;border-bottom:1px solid #c5d0d8;pointer-events:none}
+.herr{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
+.color{width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px var(--line);cursor:pointer}
+.color.sel{box-shadow:0 0 0 3px var(--pri)}
+/* revisión */
+.lista{list-style:none;margin:0;padding:0}
+.lista li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #edf0f2;font-size:15px}
+.lista li:last-child{border:0}
+.ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff}
+.ic.si{background:var(--ok)} .ic.no{background:var(--bad)} .ic.av{background:#c98a14}
+.res{background:var(--card);border-radius:var(--r);padding:18px;text-align:center}
+.res h2{margin:6px 0 4px;font-size:22px}
+.res .folio{font-family:ui-monospace,Consolas,monospace;font-size:15px;background:var(--pri-soft);color:var(--pri);border-radius:8px;padding:6px 10px;display:inline-block;margin:6px 0 14px}
+.res a{display:block;text-align:left;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;color:var(--pri);font-weight:600;text-decoration:none}
+.oculto{display:none!important}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#15212b;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:50;max-width:90vw;text-align:center;opacity:0;transition:opacity .2s}
+.toast.ver{opacity:.95}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca"><img src="/static/siniestros/logo-blanco.png" alt="Centro de Capacitación del Personal Operativo del Transporte del Estado de Querétaro"><a id="lnkReportes" href="/reportes/">Mis reportes</a></div>
+  <div class="titulo-paso"><h1 id="titulo">Datos generales</h1><span id="contador">Paso 1 de 9</span></div>
+  <div class="barras" id="barras"></div>
+</header>
+
+<main>
+  <div id="avisoCola" class="aviso warn oculto"><span id="avisoColaTxt"></span><button class="btn peq" type="button" id="btnReintentar">Reintentar</button></div>
+  <div id="avisoEdicion" class="aviso info oculto"></div>
+  <div id="avisoRed" class="aviso info oculto">Sin señal. Puedes seguir capturando; todo se guarda en el teléfono.</div>
+
+  <form id="f" autocomplete="off" onsubmit="return false">
+
+  <!-- 1 DATOS GENERALES -->
+  <section class="paso" data-titulo="Datos generales">
+    <fieldset><legend>Cuándo y dónde</legend>
+      <div class="fila">
+        <div class="campo"><label class="req">Fecha</label><input type="date" name="fecha"></div>
+        <div class="campo"><label class="req">Hora</label><input type="time" name="hora"></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><label>Ruta</label><input type="text" name="ruta" placeholder="L-55"></div>
+        <div class="campo"><label>No. económico</label><input type="text" name="economico" inputmode="numeric"></div>
+      </div>
+      <div class="campo"><label class="req">Lugar del hecho (calle y entre calles)</label><input type="text" name="lugar"></div>
+      <div class="campo"><label>Colonia, fraccionamiento o comunidad</label><input type="text" name="colonia"></div>
+    </fieldset>
+    <fieldset><legend>Competencia y aseguradora</legend>
+      <div class="campo"><span class="etq">Competencia</span>
+        <div class="seg">
+          <label><input type="radio" name="competencia" value="MUNICIPAL"><span>Municipal</span></label>
+          <label><input type="radio" name="competencia" value="ESTATAL"><span>Estatal</span></label>
+          <label><input type="radio" name="competencia" value="GN"><span>GN</span></label>
+          <label><input type="radio" name="competencia" value="OTROS"><span>Otros</span></label>
+        </div>
+      </div>
+      <div class="campo" data-si="competencia=OTROS"><label>¿Cuál?</label><input type="text" name="competencia_otro"></div>
+      <div class="campo"><label>Reporte de aseguradora</label><input type="text" name="reporte_aseguradora"></div>
+    </fieldset>
+  </section>
+
+  <!-- 2 PARTÍCIPE A -->
+  <section class="paso" data-titulo="Partícipe A · Ejecutivo">
+    <fieldset><legend>Datos del ejecutivo(a)</legend>
+      <div class="campo"><label class="req">Nombre completo</label><input type="text" name="a.nombre" autocapitalize="words"></div>
+      <div class="fila">
+        <div class="campo"><label>No. de empleado</label><input type="text" name="a.no_empleado" inputmode="numeric"></div>
+        <div class="campo"><label>Teléfono</label><input type="tel" name="a.telefono"></div>
+      </div>
+      <div class="campo"><span class="etq">Sexo</span>
+        <div class="seg"><label><input type="radio" name="a.sexo" value="M"><span>Masculino</span></label><label><input type="radio" name="a.sexo" value="F"><span>Femenino</span></label></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><label>Fecha de nacimiento</label><input type="date" name="a.nacimiento"></div>
+        <div class="campo"><label>Edad</label><input type="number" name="a.edad" inputmode="numeric"></div>
+      </div>
+      <div class="campo"><label>Domicilio</label><input type="text" name="a.domicilio"></div>
+      <div class="campo"><label>Identificación</label><input type="text" name="a.identificacion" list="ids"></div>
+    </fieldset>
+    <fieldset><legend>Licencia y tarjetón</legend>
+      <div class="fila">
+        <div class="campo"><label>No. de licencia</label><input type="text" name="a.licencia"></div>
+        <div class="campo"><label>Vigencia</label><input type="text" name="a.vigencia"></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><label>Tarjetón (TIO)</label><input type="text" name="a.tarjeton"></div>
+        <div class="campo"><label>Infracción</label><input type="text" name="a.infraccion"></div>
+      </div>
+      <div class="campo"><label>Garantía</label><input type="text" name="a.garantia"></div>
+    </fieldset>
+    <fieldset><legend>Unidad</legend>
+      <div class="fila">
+        <div class="campo"><label>Placas</label><input type="text" name="a.placas" autocapitalize="characters"></div>
+        <div class="campo"><label>Modelo (año)</label><input type="number" name="a.modelo" inputmode="numeric"></div>
+      </div>
+      <div class="campo"><label>Garantiza</label><input type="text" name="a.garantiza"></div>
+      <div class="campo"><label>Trayectoria anterior</label><input type="text" name="a.trayectoria" list="trayectorias"></div>
+      <p class="ayuda">Marca M. BENZ, servicio público, propietario AMEQ y seguro HDI ya vienen en el formato.</p>
+    </fieldset>
+    <fieldset><legend>Después del hecho</legend>
+      <label class="chk"><input type="checkbox" name="a.lesionado"> Lesionado</label>
+      <label class="chk"><input type="checkbox" name="a.fallecido"> Fallecido</label>
+      <div class="campo"><label>Vehículo remolcado por</label><input type="text" name="a.remolcado_por"></div>
+      <div class="campo"><label>Vehículo trasladado a</label><input type="text" name="a.trasladado_a"></div>
+      <div class="campo"><label>A disposición de</label><input type="text" name="a.disposicion"></div>
+    </fieldset>
+  </section>
+
+  <!-- 3 PARTÍCIPE B -->
+  <section class="paso" data-titulo="Partícipe B">
+    <fieldset><legend>Datos del partícipe</legend>
+      <div class="campo"><label>Nombre completo</label><input type="text" name="b.nombre" autocapitalize="words"></div>
+      <div class="campo"><label>Teléfono</label><input type="tel" name="b.telefono"></div>
+      <div class="campo"><span class="etq">Sexo</span>
+        <div class="seg"><label><input type="radio" name="b.sexo" value="M"><span>Masculino</span></label><label><input type="radio" name="b.sexo" value="F"><span>Femenino</span></label></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><label>Fecha de nacimiento</label><input type="date" name="b.nacimiento"></div>
+        <div class="campo"><label>Edad</label><input type="number" name="b.edad" inputmode="numeric"></div>
+      </div>
+      <div class="campo"><label>Domicilio</label><input type="text" name="b.domicilio"></div>
+      <div class="campo"><label>Identificación</label><input type="text" name="b.identificacion" list="ids"></div>
+    </fieldset>
+    <fieldset><legend>Vehículo</legend>
+      <div class="fila">
+        <div class="campo"><label>Placas</label><input type="text" name="b.placas" autocapitalize="characters"></div>
+        <div class="campo"><label>Entidad federativa</label><input type="text" name="b.entidad"></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><label>Marca</label><input type="text" name="b.marca"></div>
+        <div class="campo"><label>Modelo (año)</label><input type="number" name="b.modelo" inputmode="numeric"></div>
+      </div>
+      <div class="campo"><label>Tipo de servicio</label><input type="text" name="b.tipo_servicio" list="servicios"></div>
+      <div class="fila">
+        <div class="campo"><label>Seguro</label><input type="text" name="b.seguro"></div>
+        <div class="campo"><label>Garantiza</label><input type="text" name="b.garantiza"></div>
+      </div>
+      <div class="campo"><label>Trayectoria anterior</label><input type="text" name="b.trayectoria" list="trayectorias"></div>
+    </fieldset>
+    <fieldset><legend>Después del hecho</legend>
+      <label class="chk"><input type="checkbox" name="b.lesionado"> Lesionado</label>
+      <label class="chk"><input type="checkbox" name="b.fallecido"> Fallecido</label>
+      <div class="campo"><label>Vehículo remolcado por</label><input type="text" name="b.remolcado_por"></div>
+      <div class="campo"><label>Vehículo trasladado a</label><input type="text" name="b.trasladado_a"></div>
+      <div class="campo"><label>A disposición de</label><input type="text" name="b.disposicion"></div>
+    </fieldset>
+  </section>
+
+  <!-- 4 LESIONADOS -->
+  <section class="paso" data-titulo="Lesionados">
+    <fieldset><legend>Partícipes / lesionados</legend>
+      <p class="ayuda" style="margin-top:0">Pasajeros, peatones u otras personas lesionadas. Si no hubo, deja esta sección vacía.</p>
+      <div id="listaLes"></div>
+      <button type="button" class="btn ancho" id="btnAgregarLes">+ Agregar lesionado</button>
+      <div style="height:12px"></div>
+    </fieldset>
+  </section>
+
+  <!-- 5 GENERALIDADES -->
+  <section class="paso" data-titulo="Generalidades">
+    <fieldset><legend>Del hecho</legend>
+      <div class="campo"><label>Causal</label><input type="text" name="causal"></div>
+      <div class="campo"><label>Tipo de colisión</label><input type="text" name="colision" list="colisiones"></div>
+      <div class="campo"><span class="etq">¿La unidad es responsable?</span>
+        <div class="seg"><label><input type="radio" name="responsable" value="SI"><span>Sí</span></label><label><input type="radio" name="responsable" value="NO"><span>No</span></label></div>
+      </div>
+      <div class="campo"><label>Medio de prueba</label><input type="text" name="medio_prueba" list="pruebas"></div>
+      <div class="campo"><label>Nota</label><input type="text" name="nota"></div>
+      <label class="chk"><input type="checkbox" name="alcohol"> Algún conductor bajo influjo de alcohol o sustancias</label>
+    </fieldset>
+    <fieldset><legend>Anexos (fundamento)</legend>
+      <div id="listaAnexos"></div>
+    </fieldset>
+  </section>
+
+  <!-- 6 ENTREVISTA -->
+  <section class="paso" data-titulo="Entrevista">
+    <fieldset><legend>Redacción de hechos</legend>
+      <div class="campo"><label class="req">¿Qué pasó?</label><textarea name="narrativa" placeholder="Siendo aproximadamente las __:__ hrs, la unidad circulaba sobre..."></textarea></div>
+    </fieldset>
+    <fieldset><legend>Seguro</legend>
+      <div class="campo"><span class="etq">¿Se activa el seguro?</span>
+        <div class="seg"><label><input type="radio" name="seguro_activo" value="SÍ"><span>Sí</span></label><label><input type="radio" name="seguro_activo" value="NO"><span>No</span></label></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><label>Pases médicos</label><input type="number" name="pases_medicos" inputmode="numeric" min="0"></div>
+        <div class="campo"><label>Seguro que garantiza</label><input type="text" name="seguro_garantiza"></div>
+      </div>
+    </fieldset>
+    <fieldset><legend>Croquis del lugar</legend>
+      <div class="lienzo"><canvas id="cvCroquis" width="1200" height="675"></canvas><div class="marca-agua">Dibuja con el dedo</div></div>
+      <div class="herr">
+        <button type="button" class="color sel" data-color="#111111" style="background:#111" aria-label="Negro"></button>
+        <button type="button" class="color" data-color="#1d4ed8" style="background:#1d4ed8" aria-label="Azul"></button>
+        <button type="button" class="color" data-color="#c81e1e" style="background:#c81e1e" aria-label="Rojo"></button>
+        <button type="button" class="btn peq" id="btnGrosor">Grueso</button>
+        <button type="button" class="btn peq" id="btnDeshacer">Deshacer</button>
+        <button type="button" class="btn peq quitar" id="btnLimpiarCroquis">Borrar</button>
+        <label class="btn peq" style="display:inline-flex;align-items:center">Foto de fondo<input type="file" accept="image/*" capture="environment" id="fotoCroquis" hidden></label>
+      </div>
+    </fieldset>
+  </section>
+
+  <!-- 7 CONVENIO -->
+  <section class="paso" data-titulo="Convenio">
+    <div id="convNoProcede" class="aviso warn">No procede convenio entre particulares: hay lesionados, fallecidos o influjo de alcohol/sustancias.</div>
+    <div id="convProcede">
+      <fieldset><legend>Convenio entre particulares</legend>
+        <label class="chk" style="accent-color:var(--ok)"><input type="checkbox" name="aplica_convenio" style="accent-color:var(--ok)"> Las partes llegaron a un convenio</label>
+        <div data-si="aplica_convenio=true">
+          <p class="ayuda" style="margin-top:0">Se usan los datos de A y B que ya capturaste (domicilio, teléfono, vehículo, identificación) y la redacción de hechos.</p>
+          <div class="campo"><label>El primer partícipe repara el daño por medio de</label><textarea name="forma_reparacion" style="min-height:110px" placeholder="pago en efectivo de $____ el día __/__/____"></textarea></div>
+          <span class="etq">Firma primer partícipe</span>
+          <div class="lienzo firma"><div class="linea"></div><canvas data-firma="firma_conv_a" width="900" height="300"></canvas></div>
+          <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_conv_a">Borrar firma</button></div>
+          <span class="etq">Firma segundo partícipe</span>
+          <div class="lienzo firma"><div class="linea"></div><canvas data-firma="firma_conv_b" width="900" height="300"></canvas></div>
+          <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_conv_b">Borrar firma</button></div>
+        </div>
+      </fieldset>
+    </div>
+  </section>
+
+  <!-- 8 FIRMAS -->
+  <section class="paso" data-titulo="Firmas">
+    <fieldset><legend>Ejecutivo(a)</legend>
+      <p class="ayuda" style="margin-top:0" id="nomEjecutivo"></p>
+      <div class="lienzo firma"><div class="linea"></div><canvas data-firma="firma_ejecutivo" width="900" height="300"></canvas></div>
+      <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_ejecutivo">Borrar firma</button></div>
+    </fieldset>
+    <fieldset><legend>Agente de siniestros</legend>
+      <div class="campo"><label>Nombre</label><input type="text" name="agente_nombre" autocapitalize="words"></div>
+      <div class="lienzo firma"><div class="linea"></div><canvas data-firma="firma_agente" width="900" height="300"></canvas></div>
+      <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_agente">Borrar firma</button></div>
+    </fieldset>
+    <fieldset><legend>Perito HTT</legend>
+      <div class="campo"><label>Nombre</label><input type="text" name="perito_nombre" autocapitalize="words"></div>
+      <div class="lienzo firma"><div class="linea"></div><canvas data-firma="firma_perito" width="900" height="300"></canvas></div>
+      <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_perito">Borrar firma</button></div>
+    </fieldset>
+  </section>
+
+  <!-- 9 REVISAR -->
+  <section class="paso" data-titulo="Revisar y enviar">
+    <div id="vistaRevision">
+      <fieldset><legend>Antes de enviar</legend>
+        <ul class="lista" id="listaRevision"></ul>
+        <div style="height:12px"></div>
+      </fieldset>
+      <button type="button" class="btn ok ancho" id="btnEnviar">Enviar siniestro</button>
+      <div style="height:10px"></div>
+      <button type="button" class="btn quitar ancho" id="btnDescartar">Descartar captura</button>
+    </div>
+    <div id="vistaResultado" class="res oculto"></div>
+    <div style="height:14px"></div>
+    <fieldset id="cajaHistorial" class="oculto"><legend>Enviados desde este teléfono</legend><ul class="lista" id="listaHistorial"></ul><div style="height:8px"></div></fieldset>
+  </section>
+
+  </form>
+</main>
+
+<footer>
+  <button type="button" class="btn" id="btnAnt">Anterior</button>
+  <button type="button" class="btn pri" id="btnSig">Siguiente</button>
+</footer>
+<div class="toast" id="toast"></div>
+
+<datalist id="ids"><option>INE</option><option>LICENCIA DE CONDUCIR</option><option>PASAPORTE</option></datalist>
+<datalist id="trayectorias"><option>DE NORTE A SUR</option><option>DE SUR A NORTE</option><option>DE ORIENTE A PONIENTE</option><option>DE PONIENTE A ORIENTE</option><option>ESTACIONADO</option></datalist>
+<datalist id="servicios"><option>PARTICULAR</option><option>PÚBLICO</option><option>TAXI</option><option>PLATAFORMA</option><option>CARGA</option><option>MOTOCICLETA</option></datalist>
+<datalist id="colisiones"><option>ALCANCE</option><option>LATERAL</option><option>FRONTAL</option><option>CRUCERO</option><option>ATROPELLAMIENTO</option><option>OBJETO FIJO</option><option>SALIDA DE CAMINO</option></datalist>
+<datalist id="pruebas"><option>VIDEO DE CÁMARA A BORDO</option><option>FOTOGRAFÍAS</option><option>TESTIGOS</option><option>DICTAMEN PERICIAL</option></datalist>
+
+<script>
+(() => {
+"use strict";
+// ======================================================= almacenamiento
+const CFG = JSON.parse(document.getElementById("cfg").textContent);
+const EDITAR = CFG.modo === "editar";
+const YO = CFG.usuario.usuario;  // cada usuario tiene su propio borrador y cola (por si comparten celular)
+const K_BORRADOR = EDITAR ? `sin_edicion_${CFG.folio}` : `sin_borrador_${YO}`, K_COLA = `sin_cola_${YO}`, K_HIST = `sin_historial_${YO}`;
+const leer = (k, def) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } };
+const escribir = (k, v) => {
+  try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+  catch (e) { toast("El teléfono no tiene espacio para guardar la captura"); return false; }
+};
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() :
+  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c === "x" ? r : (r&3|8)).toString(16); }));
+const hoy = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const ahora = () => new Date().toTimeString().slice(0, 5);
+
+const ANEXOS = [
+  "Reglamento para la Movilidad y el Tránsito del Municipio de Querétaro",
+  "Ley de la Agencia de Movilidad y Modalidades del Transporte Público",
+  "Ley de Tránsito del Estado de Querétaro",
+  "Reglamento de la Ley de Tránsito del Estado de Querétaro",
+  "Código de Conducta General del Operador del Servicio Público",
+  "Reglamento de Tránsito y Movilidad del Municipio de Corregidora",
+];
+const nuevo = () => ({
+  id_cliente: uid(), paso: 0, fecha: hoy(), hora: ahora(), competencia: "MUNICIPAL", agente_nombre: CFG.usuario.nombre,
+  seguro_garantiza: "HDI SEGUROS",
+  a: { marca: "M. BENZ" }, b: { entidad: "QUERÉTARO" },
+  lesionados: [], anexos: ANEXOS.map(() => ({ aplica: "", art: "", fracc: "" })),
+});
+function inicial() {
+  if (!EDITAR) return leer(K_BORRADOR, null) || nuevo();
+  // edición: si hay cambios sin guardar de esta misma versión se recuperan; si no, lo del servidor
+  const b = leer(K_BORRADOR, null);
+  if (b && b._version === CFG.version) return b;
+  return { ...CFG.datos, paso: 0, _version: CFG.version };
+}
+let S = inicial();
+let guardarT;
+const guardar = () => { clearTimeout(guardarT); guardarT = setTimeout(() => escribir(K_BORRADOR, S), 250); };
+
+// rutas tipo "a.nombre" / "lesionados.0.nombre"
+const getP = (o, p) => p.split(".").reduce((x, k) => (x == null ? undefined : x[k]), o);
+const setP = (o, p, v) => { const ks = p.split("."); let x = o; ks.slice(0, -1).forEach((k, i) => { if (x[k] == null) x[k] = /^\d+$/.test(ks[i+1]) ? [] : {}; x = x[k]; }); x[ks.at(-1)] = v; };
+
+// ======================================================= utilidades UI
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("ver"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("ver"), 2600); }
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+// ======================================================= enlazar campos
+function enlazar(raiz = document) {
+  raiz.querySelectorAll("#f [name]").forEach(el => {
+    if (el.dataset.ok) return; el.dataset.ok = 1;
+    const v = getP(S, el.name);
+    if (el.type === "radio") el.checked = v === el.value;
+    else if (el.type === "checkbox") el.checked = !!v;
+    else if (v != null) el.value = v;
+    el.addEventListener(el.type === "radio" || el.type === "checkbox" ? "change" : "input", () => {
+      const val = el.type === "checkbox" ? el.checked : el.value;
+      setP(S, el.name, val);
+      if (/\.nacimiento$/.test(el.name)) calcularEdad(el.name.split(".")[0]);
+      guardar(); reglas();
+    });
+  });
+}
+function calcularEdad(k) {
+  const n = S[k].nacimiento; if (!n) return;
+  const ref = new Date((S.fecha || hoy()) + "T12:00"), nac = new Date(n + "T12:00");
+  let e = ref.getFullYear() - nac.getFullYear();
+  if (ref < new Date(ref.getFullYear(), nac.getMonth(), nac.getDate())) e--;
+  if (e >= 0 && e < 120) { S[k].edad = e; const inp = $(`[name="${k}.edad"]`); if (inp) inp.value = e; }
+}
+
+// mostrar/ocultar según valores (data-si="ruta=valor")
+function convenioProcede() {
+  const a = S.a || {}, b = S.b || {};
+  const hayLes = (S.lesionados || []).some(l => (l.nombre || "").trim());
+  return !(a.lesionado || b.lesionado || a.fallecido || b.fallecido || S.alcohol || hayLes);
+}
+function reglas() {
+  $$("[data-si]").forEach(el => {
+    const [p, v] = el.dataset.si.split("=");
+    el.classList.toggle("oculto", String(getP(S, p) ?? "") !== v);
+  });
+  $$(".chk input").forEach(i => i.closest(".chk").classList.toggle("on", i.checked && i.name !== "aplica_convenio"));
+  const procede = convenioProcede();
+  $("#convNoProcede").classList.toggle("oculto", procede);
+  $("#convProcede").classList.toggle("oculto", !procede);
+  if (!procede && S.aplica_convenio) { S.aplica_convenio = false; const c = $('[name="aplica_convenio"]'); if (c) c.checked = false; guardar(); }
+  $("#nomEjecutivo").textContent = S.a?.nombre ? S.a.nombre : "Captura el nombre en el paso 2";
+}
+
+// ======================================================= lesionados
+function pintarLesionados() {
+  const caja = $("#listaLes");
+  caja.innerHTML = (S.lesionados || []).map((l, i) => `
+    <div class="tarjeta">
+      <div class="tarjeta-tit">Lesionado ${i + 1}<button type="button" class="btn peq quitar" data-quitar-les="${i}">Quitar</button></div>
+      <div class="campo"><label>Nombre</label><input type="text" name="lesionados.${i}.nombre" autocapitalize="words"></div>
+      <div class="campo"><label>Dirección</label><input type="text" name="lesionados.${i}.direccion"></div>
+      <div class="fila">
+        <div class="campo"><label>Teléfono</label><input type="tel" name="lesionados.${i}.telefono"></div>
+        <div class="campo"><label>Pase médico</label><input type="text" name="lesionados.${i}.pase_medico"></div>
+      </div>
+      <div class="campo"><label>Trasladado a</label><input type="text" name="lesionados.${i}.trasladado_a"></div>
+    </div>`).join("");
+  enlazar(caja);
+  $("#btnAgregarLes").disabled = (S.lesionados || []).length >= 8;
+  $("#btnAgregarLes").textContent = (S.lesionados || []).length >= 8 ? "Máximo 8 (espacio del formato)" : "+ Agregar lesionado";
+}
+$("#btnAgregarLes").onclick = () => { (S.lesionados ||= []).push({}); pintarLesionados(); guardar(); reglas(); $("#listaLes .tarjeta:last-child input")?.focus(); };
+$("#listaLes").addEventListener("click", e => {
+  const i = e.target.dataset.quitarLes; if (i == null) return;
+  S.lesionados.splice(+i, 1); pintarLesionados(); guardar(); reglas();
+});
+
+// ======================================================= anexos
+function pintarAnexos() {
+  $("#listaAnexos").innerHTML = ANEXOS.map((n, i) => `
+    <div class="tarjeta">
+      <div class="anexo-nombre">${esc(n)}</div>
+      <div class="campo"><div class="seg">
+        <label><input type="radio" name="anexos.${i}.aplica" value="SI"><span>Aplica</span></label>
+        <label><input type="radio" name="anexos.${i}.aplica" value="NO"><span>No aplica</span></label>
+      </div></div>
+      <div class="fila" data-si="anexos.${i}.aplica=SI">
+        <div class="campo"><label>Artículo</label><input type="text" name="anexos.${i}.art" inputmode="numeric"></div>
+        <div class="campo"><label>Fracción</label><input type="text" name="anexos.${i}.fracc" autocapitalize="characters"></div>
+      </div>
+    </div>`).join("");
+}
+
+// ======================================================= lienzos
+function coords(cv, e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; }
+function dibujarImagen(cv, src, fondoBlanco) {
+  return new Promise(res => {
+    const ctx = cv.getContext("2d");
+    if (fondoBlanco) { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height); } else ctx.clearRect(0, 0, cv.width, cv.height);
+    if (!src) return res();
+    const im = new Image(); im.onload = () => { ctx.drawImage(im, 0, 0, cv.width, cv.height); res(); }; im.onerror = res; im.src = src;
+  });
+}
+function lienzo(cv, { color = "#0b1f6b", grosor = 4.5, alTerminar, antesDeTrazo }) {
+  const ctx = cv.getContext("2d"); ctx.lineCap = ctx.lineJoin = "round";
+  let pts = null;
+  const opts = { color, grosor };
+  cv.addEventListener("pointerdown", e => {
+    e.preventDefault(); cv.setPointerCapture(e.pointerId);
+    antesDeTrazo && antesDeTrazo();
+    pts = [coords(cv, e)];
+    ctx.strokeStyle = opts.color; ctx.fillStyle = opts.color; ctx.lineWidth = opts.grosor;
+    ctx.beginPath(); ctx.arc(pts[0][0], pts[0][1], opts.grosor / 2, 0, 7); ctx.fill();
+  });
+  cv.addEventListener("pointermove", e => {
+    if (!pts) return; e.preventDefault();
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of evs) {
+      const p = coords(cv, ev), q = pts.at(-1);
+      const m = [(q[0] + p[0]) / 2, (q[1] + p[1]) / 2];
+      ctx.beginPath(); ctx.moveTo(...(pts.mid || q)); ctx.quadraticCurveTo(q[0], q[1], m[0], m[1]); ctx.stroke();
+      pts.mid = m; pts.push(p);
+    }
+  });
+  const fin = () => { if (!pts) return; pts = null; alTerminar && alTerminar(); };
+  cv.addEventListener("pointerup", fin); cv.addEventListener("pointercancel", fin);
+  return opts;
+}
+// firmas
+$$("canvas[data-firma]").forEach(cv => {
+  const k = cv.dataset.firma;
+  lienzo(cv, { alTerminar: () => { S[k] = cv.toDataURL("image/png"); guardar(); } });
+  dibujarImagen(cv, S[k], false);
+});
+$$("[data-borrar]").forEach(b => b.onclick = () => {
+  const k = b.dataset.borrar; delete S[k]; guardar();
+  dibujarImagen($(`canvas[data-firma="${k}"]`), null, false);
+});
+// croquis
+const cvC = $("#cvCroquis"), ctxC = cvC.getContext("2d"), historia = [];
+const guardarCroquis = () => { S.croquis = cvC.toDataURL("image/jpeg", 0.82); guardar(); };
+const optC = lienzo(cvC, {
+  color: "#111111", grosor: 4,
+  antesDeTrazo: () => { historia.push(ctxC.getImageData(0, 0, cvC.width, cvC.height)); if (historia.length > 6) historia.shift(); },
+  alTerminar: guardarCroquis,
+});
+dibujarImagen(cvC, S.croquis, true);
+$$(".color").forEach(b => b.onclick = () => { optC.color = b.dataset.color; $$(".color").forEach(x => x.classList.toggle("sel", x === b)); });
+$("#btnGrosor").onclick = e => { const g = optC.grosor > 5; optC.grosor = g ? 4 : 9; e.target.textContent = g ? "Grueso" : "Delgado"; };
+$("#btnDeshacer").onclick = () => { const h = historia.pop(); if (h) { ctxC.putImageData(h, 0, 0); guardarCroquis(); } };
+$("#btnLimpiarCroquis").onclick = () => { if (!confirm("¿Borrar todo el croquis?")) return; historia.length = 0; dibujarImagen(cvC, null, true).then(() => { delete S.croquis; guardar(); }); };
+$("#fotoCroquis").onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file), im = new Image();
+  im.onload = () => {
+    historia.push(ctxC.getImageData(0, 0, cvC.width, cvC.height));
+    ctxC.fillStyle = "#fff"; ctxC.fillRect(0, 0, cvC.width, cvC.height);
+    const s = Math.max(cvC.width / im.width, cvC.height / im.height), w = im.width * s, h = im.height * s;
+    ctxC.drawImage(im, (cvC.width - w) / 2, (cvC.height - h) / 2, w, h);
+    URL.revokeObjectURL(url); guardarCroquis(); toast("Foto puesta como fondo; ya puedes dibujar encima");
+  };
+  im.src = url; e.target.value = "";
+};
+
+// ======================================================= navegación
+const pasos = $$(".paso"), N = pasos.length;
+$("#barras").innerHTML = pasos.map((_, i) => `<button type="button" aria-label="Ir al paso ${i + 1}" data-ir="${i}"></button>`).join("");
+$("#barras").onclick = e => { if (e.target.dataset.ir != null) ir(+e.target.dataset.ir); };
+function ir(i) {
+  S.paso = Math.max(0, Math.min(N - 1, i)); guardar();
+  pasos.forEach((p, j) => p.classList.toggle("activo", j === S.paso));
+  $$("#barras button").forEach((b, j) => { b.classList.toggle("actual", j === S.paso); b.classList.toggle("hecho", j < S.paso); });
+  $("#titulo").textContent = pasos[S.paso].dataset.titulo;
+  $("#contador").textContent = `Paso ${S.paso + 1} de ${N}`;
+  $("#btnAnt").disabled = S.paso === 0;
+  const ultimo = S.paso === N - 1;
+  $("#btnSig").classList.toggle("oculto", ultimo);
+  if (ultimo) revisar();
+  reglas(); window.scrollTo(0, 0);
+}
+$("#btnAnt").onclick = () => ir(S.paso - 1);
+$("#btnSig").onclick = () => ir(S.paso + 1);
+
+// ======================================================= revisión
+const REQ = [["lugar", "Lugar del hecho", 0], ["a.nombre", "Nombre del ejecutivo(a)", 1], ["narrativa", "Redacción de hechos", 5]];
+const RECOM = [["hora", "Hora", 0], ["ruta", "Ruta", 0], ["b.nombre", "Nombre del partícipe B", 2], ["croquis", "Croquis", 5],
+               ["firma_ejecutivo", "Firma del ejecutivo(a)", 7], ["firma_agente", "Firma del agente", 7]];
+function revisar() {
+  $("#vistaResultado").classList.add("oculto"); $("#vistaRevision").classList.remove("oculto");
+  const lleno = p => String(getP(S, p) ?? "").trim() !== "";
+  let falta = 0, html = "";
+  for (const [p, n, paso] of REQ) { const ok = lleno(p); if (!ok) falta++;
+    html += `<li><span class="ic ${ok ? "si" : "no"}">${ok ? "✓" : "!"}</span><span>${n}${ok ? "" : ` — <a href="#" data-ir="${paso}">obligatorio, capturar</a>`}</span></li>`; }
+  for (const [p, n, paso] of RECOM) { const ok = lleno(p);
+    html += `<li><span class="ic ${ok ? "si" : "av"}">${ok ? "✓" : "–"}</span><span>${n}${ok ? "" : ` — <a href="#" data-ir="${paso}">vacío</a>`}</span></li>`; }
+  const les = (S.lesionados || []).filter(l => l.nombre).length;
+  html += `<li><span class="ic si">i</span><span>${les} lesionado(s) en la lista · Convenio: ${S.aplica_convenio ? "sí" : "no"}</span></li>`;
+  $("#listaRevision").innerHTML = html;
+  $("#btnEnviar").disabled = falta > 0;
+  $("#btnEnviar").textContent = falta ? `Faltan ${falta} dato(s) obligatorio(s)` : (EDITAR ? "Guardar cambios" : "Enviar siniestro");
+  pintarHistorial();
+}
+$("#listaRevision").onclick = e => { if (e.target.dataset.ir) { e.preventDefault(); ir(+e.target.dataset.ir); } };
+$("#btnDescartar").onclick = () => {
+  if (EDITAR) {
+    if (!confirm("¿Salir sin guardar? Se pierden los cambios que no hayas guardado.")) return;
+    try { localStorage.removeItem(K_BORRADOR); } catch (e) {}
+    location.href = CFG.url_volver; return;
+  }
+  if (confirm("¿Borrar toda la captura de este siniestro?")) reiniciar();
+};
+function reiniciar() { S = nuevo(); escribir(K_BORRADOR, S); location.reload(); }
+
+// ======================================================= envío + cola sin señal
+function csrf() {
+  const m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : $("#csrfInicial").value;
+}
+async function postJSON(url, datos) {
+  const resp = await fetch(url, { method: "POST", credentials: "same-origin",
+    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() }, body: JSON.stringify(datos) });
+  if (resp.status === 401) return { ok: false, sesion: true };
+  return resp.json().catch(() => ({ ok: false, error: `Error ${resp.status}` + (resp.status === 403 ? " (permiso o sesión)" : "") }));
+}
+let sesionExpirada = false;
+const cola = () => leer(K_COLA, []);
+function pintarCola() {
+  const c = EDITAR ? [] : cola();
+  $("#avisoCola").classList.toggle("oculto", !c.length);
+  if (!c.length) return;
+  const txt = c.length === 1 ? "1 siniestro guardado pendiente de envío" : `${c.length} siniestros pendientes de envío`;
+  $("#avisoColaTxt").textContent = sesionExpirada ? `${txt}. Tu sesión expiró: entra de nuevo para enviarlos.` : txt;
+  $("#btnReintentar").textContent = sesionExpirada ? "Entrar" : "Reintentar";
+}
+function pintarHistorial() {
+  const h = EDITAR ? [] : leer(K_HIST, []);
+  $("#cajaHistorial").classList.toggle("oculto", !h.length);
+  $("#listaHistorial").innerHTML = h.map(x => `<li><span class="ic si">✓</span><span><a href="/reportes/${encodeURIComponent(x.folio)}/"><b>${esc(x.folio)}</b></a><br>${esc(x.etiqueta)}</span></li>`).join("");
+}
+$("#btnEnviar").onclick = async () => {
+  if (EDITAR) return guardarEdicion();
+  const datos = JSON.parse(JSON.stringify(S)); delete datos.paso;
+  const item = { id: S.id_cliente, etiqueta: `${S.fecha} ${S.hora} · ${S.ruta || "s/ruta"} · ${S.a?.nombre || ""}`, datos };
+  const c = cola().filter(x => x.id !== item.id); c.push(item);
+  if (!escribir(K_COLA, c)) return;
+  $("#btnEnviar").disabled = true; $("#btnEnviar").textContent = "Enviando…";
+  const r = await procesarCola();
+  const mio = r.find(x => x.id === item.id);
+  // la captura ya está a salvo en la cola: se limpia el borrador
+  S = nuevo(); S.paso = N - 1; escribir(K_BORRADOR, S);
+  mostrarResultado(mio);
+};
+async function guardarEdicion() {
+  const datos = JSON.parse(JSON.stringify(S)); delete datos.paso;
+  $("#btnEnviar").disabled = true; $("#btnEnviar").textContent = "Guardando…";
+  let r;
+  try { r = await postJSON(CFG.url_guardar, datos); }
+  catch (e) { r = { ok: false, error: "Sin conexión. Tus cambios siguen guardados en este equipo; intenta de nuevo." }; }
+  if (r.ok) {
+    try { localStorage.removeItem(K_BORRADOR); } catch (e) {}
+    location.href = r.url_reporte + (r.sin_cambios ? "?sin_cambios=1" : `?guardado=${r.cambios}`);
+    return;
+  }
+  toast(r.sesion ? "Tu sesión expiró; entra de nuevo (tus cambios no se pierden)" : (r.error || "No se pudo guardar"));
+  revisar();
+}
+let procesando = false;
+async function procesarCola() {
+  if (procesando) return []; procesando = true;
+  const resultados = [];
+  try {
+    for (const item of cola()) {
+      let r;
+      try {
+        r = await postJSON(CFG.url_guardar, item.datos);
+      } catch (e) { resultados.push({ id: item.id, sinRed: true }); break; } // sin señal: se intenta después
+      resultados.push({ id: item.id, ...r });
+      sesionExpirada = !!r.sesion;
+      if (r.sesion) break;
+      if (r.ok) {
+        escribir(K_COLA, cola().filter(x => x.id !== item.id));
+        const h = leer(K_HIST, []); h.unshift({ folio: r.folio, etiqueta: item.etiqueta }); escribir(K_HIST, h.slice(0, 15));
+      }
+    }
+  } finally { procesando = false; pintarCola(); pintarHistorial(); }
+  return resultados;
+}
+function mostrarResultado(r) {
+  // se vuelven a enlazar los campos con la captura nueva
+  $$("#f [name]").forEach(el => delete el.dataset.ok); pintarLesionados(); pintarAnexos(); enlazar();
+  $$("canvas[data-firma]").forEach(cv => dibujarImagen(cv, null, false)); dibujarImagen(cvC, null, true);
+  $("#vistaRevision").classList.add("oculto");
+  const v = $("#vistaResultado"); v.classList.remove("oculto");
+  if (r && r.ok) {
+    v.innerHTML = `<div class="ic si" style="width:44px;height:44px;margin:0 auto;font-size:22px">✓</div>
+      <h2>Siniestro enviado</h2><div class="folio">${esc(r.folio)}</div>
+      <a href="${esc(r.url_reporte)}">Ver el reporte en la plataforma →</a>
+      ${r.archivos.map(a => `<a href="${esc(a.url)}">⬇ ${esc(a.nombre)}</a>`).join("")}
+      <button type="button" class="btn pri ancho" data-nuevo>Capturar otro siniestro</button>`;
+  } else if (r && r.sesion) {
+    v.innerHTML = `<div class="ic av" style="width:44px;height:44px;margin:0 auto;font-size:22px">!</div>
+      <h2>Guardado en el teléfono</h2><p>Tu sesión expiró. Entra de nuevo con tu usuario y el siniestro se enviará solo.</p>
+      <a class="btn pri ancho" style="text-align:center;color:#fff" href="/entrar/?next=/">Entrar</a>`;
+  } else if (!r || r.sinRed) {
+    v.innerHTML = `<div class="ic av" style="width:44px;height:44px;margin:0 auto;font-size:22px">⏳</div>
+      <h2>Guardado en el teléfono</h2><p>No hay señal. Se enviará solo en cuanto haya conexión; no cierres sesión ni borres datos del navegador.</p>
+      <button type="button" class="btn pri ancho" data-nuevo>Capturar otro siniestro</button>`;
+  } else {
+    v.innerHTML = `<div class="ic no" style="width:44px;height:44px;margin:0 auto;font-size:22px">!</div>
+      <h2>El servidor marcó un error</h2><p style="word-break:break-word">${esc(r.error || "")}</p>
+      <p>La captura quedó guardada y se reintentará. Avísale a sistemas.</p>
+      <button type="button" class="btn pri ancho" data-nuevo>Capturar otro siniestro</button>`;
+  }
+  pintarHistorial();
+}
+$("#vistaResultado").addEventListener("click", e => { if (e.target.dataset.nuevo != null) { S = nuevo(); escribir(K_BORRADOR, S); location.reload(); } });
+$("#btnReintentar").onclick = async () => {
+  if (sesionExpirada) { location.href = "/entrar/?next=/"; return; } const r = await procesarCola(); toast(r.some(x => x.ok) ? "Siniestro(s) enviado(s)" : r.some(x => x.sinRed) ? "Sigue sin señal" : "No se pudo enviar"); };
+
+function red() { $("#avisoRed").classList.toggle("oculto", navigator.onLine); if (navigator.onLine && !EDITAR) procesarCola(); }
+addEventListener("online", red); addEventListener("offline", red);
+setInterval(() => { if (!EDITAR && navigator.onLine && cola().length) procesarCola(); }, 30000);
+
+// ======================================================= arranque
+if (CFG.usuario.puede_revisar) $("#lnkReportes").textContent = "Reportes";
+if (EDITAR) {
+  document.title = `Editar ${CFG.folio}`;
+  pasos[N - 1].dataset.titulo = "Revisar y guardar";
+  $("#btnDescartar").textContent = "Cancelar edición";
+  $("#lnkReportes").textContent = "Volver"; $("#lnkReportes").href = CFG.url_volver;
+  const av = $("#avisoEdicion"); av.classList.remove("oculto");
+  av.innerHTML = `<span>Editando <b>${esc(CFG.folio)}</b>. Los cambios quedan en el historial con tu nombre.</span>`;
+}
+pintarLesionados(); pintarAnexos(); enlazar(); ir(S.paso || 0); pintarCola(); red();
+if (!EDITAR && "serviceWorker" in navigator && isSecureContext) navigator.serviceWorker.register("/sw.js").catch(() => {});
+})();
+</script>
+{% endverbatim %}
+</body>
+</html>

@@ -1,0 +1,7 @@
+Django==6.1.2
+docxtpl==0.20.2
+python-docx==1.2.0
+openpyxl==3.1.5
+pillow==12.3.0
+gunicorn==23.0.0
+whitenoise==6.9.0
