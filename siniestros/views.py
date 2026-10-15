@@ -262,3 +262,34 @@ def service_worker(request):
 def manifest(request):
     return HttpResponse((STATIC / "manifest.json").read_text(encoding="utf-8"),
                         content_type="application/manifest+json")
+
+
+# ------------------------------------------------------------------ cuenta
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from .senales import perfil_de
+
+
+@login_required
+def cambiar_contrasena(request):
+    perfil = perfil_de(request.user)
+    destino = request.GET.get("next") or request.POST.get("next") or ""
+    if not url_has_allowed_host_and_scheme(destino, allowed_hosts={request.get_host()}) or destino.startswith("/cuenta/"):
+        destino = "/inicio/"
+    form = PasswordChangeForm(request.user, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        if form.cleaned_data["new_password1"] == form.cleaned_data["old_password"]:
+            form.add_error("new_password1", "La contraseña nueva debe ser distinta a la actual.")
+        else:
+            user = form.save()
+            update_session_auth_hash(request, user)  # no lo saca de la sesión
+            perfil.debe_cambiar_contrasena = False
+            perfil.contrasena_cambiada_en = timezone.now()
+            perfil.save()
+            messages.success(request, "Contraseña actualizada.")
+            return redirect(destino)
+    return render(request, "siniestros/cambiar_contrasena.html", {
+        "form": form, "forzado": perfil.debe_cambiar_contrasena, "next": destino,
+    })

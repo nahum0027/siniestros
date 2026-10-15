@@ -1,0 +1,47 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}Cambiar contraseña{% endblock %}
+{% block estilos %}
+.caja{max-width:420px;margin:4vh auto 0}
+.caja label{display:block;font-weight:600;color:var(--muted);font-size:14px;margin:0 0 5px}
+.caja input{width:100%;font-size:17px;min-height:48px;margin:0 0 4px}
+.caja .campo{margin:0 0 14px}
+.caja .err{color:var(--bad);font-size:13px;font-weight:600;margin:2px 0 0}
+.caja .btn{width:100%;min-height:48px;font-size:16px}
+.reglas{font-size:13px;color:var(--muted);margin:0 0 16px;padding-left:18px}
+.reglas li{margin:2px 0}
+{% endblock %}
+{% block contenido %}
+<div class="caja">
+  <div class="card" style="padding:22px">
+    <h1>{% if forzado %}Crea tu contraseña{% else %}Cambiar contraseña{% endif %}</h1>
+    <p class="sub">{% if forzado %}Es tu primer ingreso o un administrador te asignó una contraseña temporal. Antes de continuar, elige una contraseña que solo tú conozcas.{% else %}Escribe tu contraseña actual y la nueva.{% endif %}</p>
+    <ul class="reglas">
+      <li>Mínimo 8 caracteres.</li>
+      <li>Que no sea solo números ni se parezca a tu nombre o usuario.</li>
+      <li>Que no sea una contraseña común (como "12345678" o "password").</li>
+    </ul>
+    {% if form.non_field_errors %}<div class="msg error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="campo">
+        <label for="id_old_password">{% if forzado %}Contraseña temporal (la que te dieron){% else %}Contraseña actual{% endif %}</label>
+        <input id="id_old_password" name="old_password" type="password" autocomplete="current-password" required autofocus>
+        {% for e in form.old_password.errors %}<p class="err">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="campo">
+        <label for="id_new_password1">Contraseña nueva</label>
+        <input id="id_new_password1" name="new_password1" type="password" autocomplete="new-password" required>
+        {% for e in form.new_password1.errors %}<p class="err">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="campo">
+        <label for="id_new_password2">Repite la contraseña nueva</label>
+        <input id="id_new_password2" name="new_password2" type="password" autocomplete="new-password" required>
+        {% for e in form.new_password2.errors %}<p class="err">{{ e }}</p>{% endfor %}
+      </div>
+      <button class="btn pri" type="submit">Guardar contraseña</button>
+    </form>
+  </div>
+  {% if forzado %}<p class="sub" style="text-align:center;font-size:13px">¿No es tu cuenta? <a href="#" onclick="document.getElementById('fsalir').submit();return false">Salir</a></p>
+  <form id="fsalir" method="post" action="{% url 'salir' %}">{% csrf_token %}</form>{% endif %}
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ urlpatterns = [
                                                  redirect_authenticated_user=True), name="entrar"),
     path("salir/", auth_views.LogoutView.as_view(), name="salir"),
     path("inicio/", views.inicio, name="inicio"),
+    path("cuenta/contrasena/", views.cambiar_contrasena, name="cambiar_contrasena"),
     # campo
     path("", views.formulario, name="formulario"),
     path("api/enviar/", views.enviar, name="enviar"),

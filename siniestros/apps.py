@@ -24,4 +24,5 @@ class SiniestrosConfig(AppConfig):
     verbose_name = "Siniestros"
 
     def ready(self):
+        from . import senales  # noqa: F401  (registra la señal que crea el perfil)
         post_migrate.connect(crear_roles, sender=self)

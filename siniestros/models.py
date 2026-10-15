@@ -93,3 +93,19 @@ class Cambio(models.Model):
 
     def __str__(self):
         return f"{self.siniestro} · {self.get_tipo_display()} · {self.fecha:%d/%m/%Y %H:%M}"
+
+
+class Perfil(models.Model):
+    """Datos extra de cada usuario de la plataforma."""
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="perfil")
+    debe_cambiar_contrasena = models.BooleanField(
+        "Debe cambiar su contraseña al entrar", default=True,
+        help_text="Se marca solo al crear el usuario o cuando un administrador le pone una contraseña nueva.")
+    contrasena_cambiada_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "perfil"
+        verbose_name_plural = "perfiles"
+
+    def __str__(self):
+        return f"Perfil de {self.usuario}"

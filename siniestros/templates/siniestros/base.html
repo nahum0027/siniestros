@@ -51,12 +51,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pri-2);b
 <body>
 <header class="top"><div class="top-in">
   <a href="{% url 'inicio' %}"><img src="{% static 'siniestros/logo-blanco.png' %}" alt="Centro de Capacitación del Personal Operativo del Transporte del Estado de Querétaro"></a>
-  {% if user.is_authenticated %}
+  {% if user.is_authenticated and not forzado %}
   <nav>
     <span class="quien">{{ user.get_full_name|default:user.username }}</span>
     {% if perms.siniestros.capturar_siniestro %}<a href="{% url 'formulario' %}">Capturar</a>{% endif %}
     <a href="{% url 'lista' %}" class="{% block nav_lista %}{% endblock %}">{% if perms.siniestros.revisar_siniestro %}Reportes{% else %}Mis reportes{% endif %}</a>
     {% if user.is_staff %}<a href="{% url 'admin:index' %}">Usuarios</a>{% endif %}
+    <a href="{% url 'cambiar_contrasena' %}" class="{% block nav_cuenta %}{% endblock %}" title="Cambiar contraseña">Contraseña</a>
     <form method="post" action="{% url 'salir' %}" style="margin:0">{% csrf_token %}<button type="submit">Salir</button></form>
   </nav>
   {% endif %}
