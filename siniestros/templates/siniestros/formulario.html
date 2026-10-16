@@ -349,7 +349,10 @@ footer .btn{flex:1;max-width:340px}
         <button type="button" class="btn peq" id="btnGrosor">Grueso</button>
         <button type="button" class="btn peq" id="btnDeshacer">Deshacer</button>
         <button type="button" class="btn peq quitar" id="btnLimpiarCroquis">Borrar</button>
-        <label class="btn peq" style="display:inline-flex;align-items:center">Foto de fondo<input type="file" accept="image/*" capture="environment" id="fotoCroquis" hidden></label>
+      </div>
+      <div class="herr" style="margin-top:-4px">
+        <label class="btn peq">📷 Tomar foto<input type="file" accept="image/*" capture="environment" class="fondoCroquis" hidden></label>
+        <label class="btn peq">🖼 Imagen o captura<input type="file" accept="image/*" class="fondoCroquis" hidden></label>
       </div>
     </fieldset>
     <fieldset><legend>Fotos del siniestro</legend>
@@ -637,18 +640,23 @@ $$(".color").forEach(b => b.onclick = () => { optC.color = b.dataset.color; $$("
 $("#btnGrosor").onclick = e => { const g = optC.grosor > 5; optC.grosor = g ? 4 : 9; e.target.textContent = g ? "Grueso" : "Delgado"; };
 $("#btnDeshacer").onclick = () => { const h = historia.pop(); if (h) { ctxC.putImageData(h, 0, 0); guardarCroquis(); } };
 $("#btnLimpiarCroquis").onclick = () => { if (!confirm("¿Borrar todo el croquis?")) return; historia.length = 0; dibujarImagen(cvC, null, true).then(() => { delete S.croquis; guardar(); }); };
-$("#fotoCroquis").onchange = e => {
+// Fondo del croquis: foto o imagen de la galería (p. ej. captura de Google Maps).
+// Se ajusta COMPLETA dentro del recuadro (sin recortar); lo que sobra queda en blanco.
+$$(".fondoCroquis").forEach(inp => inp.onchange = e => {
   const file = e.target.files[0]; if (!file) return;
   const url = URL.createObjectURL(file), im = new Image();
   im.onload = () => {
+    if (S.croquis && !confirm("¿Reemplazar el croquis actual por esta imagen? (puedes usar Deshacer)")) { URL.revokeObjectURL(url); return; }
     historia.push(ctxC.getImageData(0, 0, cvC.width, cvC.height));
     ctxC.fillStyle = "#fff"; ctxC.fillRect(0, 0, cvC.width, cvC.height);
-    const s = Math.max(cvC.width / im.width, cvC.height / im.height), w = im.width * s, h = im.height * s;
+    const s = Math.min(cvC.width / im.width, cvC.height / im.height), w = im.width * s, h = im.height * s;
     ctxC.drawImage(im, (cvC.width - w) / 2, (cvC.height - h) / 2, w, h);
-    URL.revokeObjectURL(url); guardarCroquis(); toast("Foto puesta como fondo; ya puedes dibujar encima");
+    URL.revokeObjectURL(url); guardarCroquis();
+    toast(im.height > im.width ? "Imagen puesta. Tip: en Maps gira el celular antes de la captura para que quede más grande" : "Imagen puesta como fondo; ya puedes dibujar encima");
   };
+  im.onerror = () => { URL.revokeObjectURL(url); toast("No se pudo abrir esa imagen"); };
   im.src = url; e.target.value = "";
-};
+});
 
 // ======================================================= fotos
 // Las fotos pesan mucho para localStorage: van en IndexedDB y el borrador solo guarda su clave.
