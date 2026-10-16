@@ -19,6 +19,7 @@ urlpatterns = [
     path("reportes/<str:folio>/editar/", views.editar, name="editar"),
     path("reportes/<str:folio>/estado/", views.cambiar_estado, name="estado"),
     path("reportes/<str:folio>/imagen/<str:nombre>", views.imagen, name="imagen"),
+    path("reportes/<str:folio>/foto/<str:nombre>", views.foto, name="foto"),
     path("api/reportes/<str:folio>/", views.guardar_edicion, name="guardar_edicion"),
     path("descargar/<str:folio>/<str:archivo>", views.descargar, name="descargar"),
     # app instalable

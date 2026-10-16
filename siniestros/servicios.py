@@ -17,7 +17,15 @@ from .models import Cambio, Siniestro
 log = logging.getLogger(__name__)
 
 IMAGENES = ["croquis", "firma_ejecutivo", "firma_agente", "firma_perito", "firma_conv_a", "firma_conv_b"]
-NO_COMPARAR = {"id_cliente", "paso", "_version"}
+NO_COMPARAR = {"id_cliente", "paso", "_version", "fotos"}
+
+# Fotos de documentos y del siniestro: campo -> (etiqueta, máximo)
+FOTOS = {
+    "tio": ("TIO (tarjetón)", 2),
+    "licencia_a": ("Licencia del ejecutivo (A)", 2),
+    "licencia_b": ("Licencia del partícipe B", 2),
+    "otras": ("Otras fotos del siniestro", 10),
+}
 
 # Nombres legibles para el historial
 ETIQUETAS = {
@@ -102,6 +110,62 @@ def guardar_imagenes(siniestro, j):
         if datos:
             (carpeta / f"{nombre}.{ext}").write_bytes(datos)
     return cambiaron
+
+
+# ------------------------------------------------------------------ fotos
+def carpeta_fotos(siniestro):
+    return siniestro.carpeta / "fotos"
+
+
+def ruta_foto(siniestro, nombre):
+    """Ruta de una foto solo si pertenece al siniestro (evita pedir archivos ajenos)."""
+    for lista in (siniestro.datos.get("fotos") or {}).values():
+        if nombre in lista:
+            p = carpeta_fotos(siniestro) / nombre
+            return p if p.is_file() else None
+    return None
+
+
+def guardar_fotos(siniestro, j):
+    """Recibe {"campo": [dataURL nueva | {"ref": nombre_existente}, ...]}.
+    Guarda las nuevas, conserva las referenciadas y borra las que ya no vienen.
+    Regresa (fotos_resultantes, cambios_para_historial)."""
+    import uuid
+    entrada = j.get("fotos") or {}
+    previas = (siniestro.datos or {}).get("fotos") or {}
+    carpeta = carpeta_fotos(siniestro)
+    carpeta.mkdir(parents=True, exist_ok=True)
+    resultado, cambios = {}, []
+    for campo, (etq, maximo) in FOTOS.items():
+        antes = list(previas.get(campo) or [])
+        lista = []
+        for item in (entrada.get(campo) or [])[:maximo]:
+            if isinstance(item, dict) and item.get("ref") in antes:
+                lista.append(item["ref"])
+            elif isinstance(item, str):
+                datos, ext = _decodificar(item)
+                if datos:
+                    nombre = f"{campo}_{uuid.uuid4().hex[:8]}.{ext}"
+                    (carpeta / nombre).write_bytes(datos)
+                    lista.append(nombre)
+        for viejo in set(antes) - set(lista):
+            (carpeta / viejo).unlink(missing_ok=True)
+        agregadas, quitadas = len(set(lista) - set(antes)), len(set(antes) - set(lista))
+        if agregadas or quitadas:
+            cambios.append({"campo": f"fotos.{campo}", "etiqueta": f"Fotos · {etq}",
+                            "antes": f"{len(antes)} foto(s)",
+                            "despues": f"{len(lista)} foto(s) ("
+                                       + ", ".join(x for x in (f"+{agregadas} nueva(s)" if agregadas else "",
+                                                               f"−{quitadas} quitada(s)" if quitadas else "") if x) + ")"})
+        if lista:
+            resultado[campo] = lista
+    return resultado, cambios
+
+
+def fotos_para_mostrar(siniestro):
+    """[(etiqueta, [nombres])] en el orden de FOTOS, solo los grupos con fotos."""
+    fotos = (siniestro.datos or {}).get("fotos") or {}
+    return [(etq, fotos[c]) for c, (etq, _) in FOTOS.items() if fotos.get(c)]
 
 
 # ------------------------------------------------------------------ formatos
@@ -212,6 +276,11 @@ def enviar_correo(siniestro, request=None):
     msg = EmailMessage(asunto, cuerpo, to=destinatarios)
     for nombre in siniestro.documentos():
         msg.attach_file(str(siniestro.carpeta / nombre))
+    for etq, nombres in fotos_para_mostrar(siniestro):
+        for n in nombres:
+            p = carpeta_fotos(siniestro) / n
+            if p.is_file():
+                msg.attach(f"{n}", p.read_bytes(), "image/jpeg" if n.endswith(".jpg") else "image/png")
     try:
         msg.send()
         siniestro.correo_enviado_en, siniestro.correo_error = timezone.now(), ""

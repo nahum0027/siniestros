@@ -93,6 +93,8 @@ def enviar(request):
             s.copiar_resumen()
             s.save()
             sv.guardar_imagenes(s, j)
+            s.datos["fotos"], _ = sv.guardar_fotos(s, j)
+            s.save(update_fields=["datos"])
             sv.regenerar_documentos(s)
             Cambio.objects.create(siniestro=s, usuario=request.user, tipo=Cambio.Tipo.CREADO,
                                   descripcion="Capturado en campo")
@@ -150,7 +152,7 @@ def detalle(request, folio):
         raise Http404
     imagenes = [(n, sv.etiqueta(n)) for n in sv.IMAGENES if sv.ruta_imagen(s, n)]
     return render(request, "siniestros/detalle.html", {
-        "s": s, "d": s.datos, "imagenes": imagenes,
+        "s": s, "d": s.datos, "imagenes": imagenes, "fotos": sv.fotos_para_mostrar(s),
         "cambios": s.cambios.select_related("usuario"),
         "revisor": sv.puede_revisar(request.user),
         "puede_editar": sv.puede_editar(request.user, s),
@@ -165,6 +167,15 @@ def imagen(request, folio, nombre):
     if not sv.puede_ver(request.user, s) or nombre not in sv.IMAGENES:
         raise Http404
     p = sv.ruta_imagen(s, nombre)
+    if not p:
+        raise Http404
+    return FileResponse(open(p, "rb"))
+
+
+@login_required
+def foto(request, folio, nombre):
+    s = get_object_or_404(Siniestro, folio=folio)
+    p = sv.ruta_foto(s, nombre) if sv.puede_ver(request.user, s) else None
     if not p:
         raise Http404
     return FileResponse(open(p, "rb"))
@@ -191,6 +202,7 @@ def editar(request, folio):
         url = sv.imagen_como_data_url(s, n)
         if url:
             datos[n] = url
+    datos["fotos"] = {c: [f"srv:{n}" for n in lista] for c, lista in (s.datos.get("fotos") or {}).items()}
     cfg = {"modo": "editar", "folio": s.folio, "version": s.actualizado.isoformat(),
            "usuario": _cfg_usuario(request.user), "datos": datos,
            "url_guardar": f"/api/reportes/{s.folio}/", "url_volver": f"/reportes/{s.folio}/"}
@@ -213,6 +225,9 @@ def guardar_edicion(request, folio):
     with transaction.atomic():
         imgs = sv.guardar_imagenes(s, j)
         cambios += [{"campo": n, "etiqueta": sv.etiqueta(n), "antes": "(imagen)", "despues": "(imagen nueva)"} for n in imgs]
+        fotos, cambios_fotos = sv.guardar_fotos(s, j)
+        cambios += cambios_fotos
+        nuevos["fotos"] = fotos
         if not cambios:
             return JsonResponse({"ok": True, "sin_cambios": True, "url_reporte": f"/reportes/{s.folio}/"})
         s.datos = nuevos

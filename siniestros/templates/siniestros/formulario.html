@@ -53,6 +53,13 @@ input[type=text],input[type=tel],input[type=date],input[type=time],input[type=nu
   width:100%;font:inherit;font-size:17px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;min-height:48px;appearance:none;-webkit-appearance:none}
 textarea{min-height:180px;resize:vertical;line-height:1.45}
 select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b6b78' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center}
+.fotos{margin:0 0 14px}
+.miniaturas{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:0 0 4px}
+.miniaturas:empty{display:none}
+.mini{position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#f2f4f6}
+.mini img{width:100%;height:100%;object-fit:cover;display:block}
+.mini button{position:absolute;top:4px;right:4px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(21,33,43,.75);color:#fff;font-size:18px;line-height:1;cursor:pointer}
+.mini.cargando::after{content:"…";position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:var(--muted)}
 .sub-bloque{border-left:3px solid var(--bad);padding:2px 0 2px 12px;margin:-2px 0 12px}
 input:focus,select,textarea:focus{outline:none}
 input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--pri-soft)}
@@ -190,6 +197,26 @@ footer .btn{flex:1;max-width:340px}
       <div class="campo"><label>Trayectoria anterior</label><input type="text" name="a.trayectoria" list="trayectorias"></div>
       <p class="ayuda">Marca M. BENZ, servicio público, propietario AMEQ y seguro HDI ya vienen en el formato.</p>
     </fieldset>
+    <fieldset><legend>Fotos de documentos</legend>
+      <div class="fotos" data-fotos="tio" data-max="2">
+        <span class="etq">TIO (tarjetón)</span>
+        <p class="ayuda" style="margin:0 0 8px">Frente y, si hace falta, reverso.</p>
+        <div class="miniaturas"></div>
+        <div class="herr">
+          <label class="btn peq">📷 Tomar foto<input type="file" accept="image/*" capture="environment" hidden></label>
+          <label class="btn peq">🖼 Galería<input type="file" accept="image/*" multiple hidden></label>
+        </div>
+      </div>
+      <div class="fotos" data-fotos="licencia_a" data-max="2">
+        <span class="etq">Licencia del ejecutivo(a)</span>
+        <p class="ayuda" style="margin:0 0 8px">Frente y reverso.</p>
+        <div class="miniaturas"></div>
+        <div class="herr">
+          <label class="btn peq">📷 Tomar foto<input type="file" accept="image/*" capture="environment" hidden></label>
+          <label class="btn peq">🖼 Galería<input type="file" accept="image/*" multiple hidden></label>
+        </div>
+      </div>
+    </fieldset>
     <fieldset><legend>Después del hecho</legend>
       <label class="chk"><input type="checkbox" name="a.lesionado"> Lesionado</label>
       <label class="chk"><input type="checkbox" name="a.fallecido"> Fallecido</label>
@@ -232,6 +259,17 @@ footer .btn{flex:1;max-width:340px}
         <div class="campo"><label>Garantiza</label><input type="text" name="b.garantiza"></div>
       </div>
       <div class="campo"><label>Trayectoria anterior</label><input type="text" name="b.trayectoria" list="trayectorias"></div>
+    </fieldset>
+    <fieldset><legend>Foto de documentos</legend>
+      <div class="fotos" data-fotos="licencia_b" data-max="2">
+        <span class="etq">Licencia del partícipe B</span>
+        <p class="ayuda" style="margin:0 0 8px">Frente y reverso.</p>
+        <div class="miniaturas"></div>
+        <div class="herr">
+          <label class="btn peq">📷 Tomar foto<input type="file" accept="image/*" capture="environment" hidden></label>
+          <label class="btn peq">🖼 Galería<input type="file" accept="image/*" multiple hidden></label>
+        </div>
+      </div>
     </fieldset>
     <fieldset><legend>Después del hecho</legend>
       <label class="chk"><input type="checkbox" name="b.lesionado"> Lesionado</label>
@@ -312,6 +350,17 @@ footer .btn{flex:1;max-width:340px}
         <button type="button" class="btn peq" id="btnDeshacer">Deshacer</button>
         <button type="button" class="btn peq quitar" id="btnLimpiarCroquis">Borrar</button>
         <label class="btn peq" style="display:inline-flex;align-items:center">Foto de fondo<input type="file" accept="image/*" capture="environment" id="fotoCroquis" hidden></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Fotos del siniestro</legend>
+      <div class="fotos" data-fotos="otras" data-max="10">
+        <span class="etq">Otras fotos (opcional)</span>
+        <p class="ayuda" style="margin:0 0 8px">Daños, placas, posición final de los vehículos, el lugar…</p>
+        <div class="miniaturas"></div>
+        <div class="herr">
+          <label class="btn peq">📷 Tomar foto<input type="file" accept="image/*" capture="environment" hidden></label>
+          <label class="btn peq">🖼 Galería<input type="file" accept="image/*" multiple hidden></label>
+        </div>
       </div>
     </fieldset>
   </section>
@@ -601,6 +650,98 @@ $("#fotoCroquis").onchange = e => {
   im.src = url; e.target.value = "";
 };
 
+// ======================================================= fotos
+// Las fotos pesan mucho para localStorage: van en IndexedDB y el borrador solo guarda su clave.
+const idb = (() => {
+  let base;
+  const abrir = () => base ||= new Promise((ok, mal) => {
+    const r = indexedDB.open("siniestros", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("fotos");
+    r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error);
+  });
+  const op = async (modo, fn) => {
+    const db = await abrir();
+    return new Promise((ok, mal) => {
+      const tx = db.transaction("fotos", modo), req = fn(tx.objectStore("fotos"));
+      tx.oncomplete = () => ok(req && req.result); tx.onerror = () => mal(tx.error); tx.onabort = () => mal(tx.error);
+    });
+  };
+  return { get: k => op("readonly", s => s.get(k)), set: (k, v) => op("readwrite", s => s.put(v, k)), del: k => op("readwrite", s => s.delete(k)) };
+})();
+const CAMPOS_FOTO = ["tio", "licencia_a", "licencia_b", "otras"];
+function comprimir(file, lado = 1600, calidad = 0.75) {
+  return new Promise((ok, mal) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const s = Math.min(1, lado / Math.max(im.width, im.height));
+      const cv = document.createElement("canvas"); cv.width = Math.round(im.width * s); cv.height = Math.round(im.height * s);
+      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url); ok(cv.toDataURL("image/jpeg", calidad));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No se pudo leer la imagen")); };
+    im.src = url;
+  });
+}
+async function srcFoto(k) {
+  if (k.startsWith("srv:")) return `/reportes/${encodeURIComponent(CFG.folio)}/foto/${encodeURIComponent(k.slice(4))}`;
+  return await idb.get(k).catch(() => null);
+}
+async function pintarFotos() {
+  for (const caja of $$("[data-fotos]")) {
+    const campo = caja.dataset.fotos, max = +caja.dataset.max, lista = (S.fotos && S.fotos[campo]) || [];
+    const mini = caja.querySelector(".miniaturas");
+    mini.innerHTML = lista.map((k, i) => `<div class="mini cargando" data-k="${esc(k)}"><img alt="Foto ${i + 1}"><button type="button" data-quitar-foto="${i}" aria-label="Quitar foto">×</button></div>`).join("");
+    caja.querySelectorAll("label.btn").forEach(l => l.classList.toggle("oculto", lista.length >= max));
+    for (const d of mini.querySelectorAll(".mini")) {
+      const src = await srcFoto(d.dataset.k);
+      if (src) { d.querySelector("img").src = src; d.classList.remove("cargando"); }
+    }
+  }
+}
+$$("[data-fotos]").forEach(caja => {
+  const campo = caja.dataset.fotos, max = +caja.dataset.max;
+  caja.addEventListener("change", async e => {
+    if (e.target.type !== "file") return;
+    const archivos = [...e.target.files]; e.target.value = "";
+    S.fotos ||= {}; S.fotos[campo] ||= [];
+    let agregadas = 0;
+    for (const f of archivos) {
+      if (S.fotos[campo].length >= max) { toast(`Máximo ${max} foto(s) aquí`); break; }
+      try {
+        const k = `${S.id_cliente || CFG.folio}:${campo}:${uid().slice(0, 8)}`;
+        await idb.set(k, await comprimir(f));
+        S.fotos[campo].push(k); agregadas++;
+      } catch (err) { toast("No se pudo guardar la foto: " + err.message); }
+    }
+    if (agregadas) { guardar(); pintarFotos(); }
+  });
+  caja.addEventListener("click", e => {
+    const i = e.target.dataset.quitarFoto; if (i == null) return;
+    if (!confirm("¿Quitar esta foto?")) return;
+    const [k] = S.fotos[campo].splice(+i, 1);
+    if (!k.startsWith("srv:")) idb.del(k).catch(() => {});
+    guardar(); pintarFotos();
+  });
+});
+// Arma lo que se manda al servidor: las fotos nuevas como imagen, las que ya estaban como referencia
+async function armarEnvio(datos) {
+  const p = JSON.parse(JSON.stringify(datos)); delete p.paso; p.fotos = {};
+  for (const campo of CAMPOS_FOTO) {
+    if (campo === "licencia_b" && datos.b_no_aplica) continue;
+    const salida = [];
+    for (const k of (datos.fotos && datos.fotos[campo]) || []) {
+      if (k.startsWith("srv:")) salida.push({ ref: k.slice(4) });
+      else { const v = await idb.get(k).catch(() => null); if (v) salida.push(v); }
+    }
+    if (salida.length) p.fotos[campo] = salida;
+  }
+  return p;
+}
+function borrarFotosLocales(datos) {
+  for (const campo of CAMPOS_FOTO)
+    for (const k of (datos && datos.fotos && datos.fotos[campo]) || []) if (!k.startsWith("srv:")) idb.del(k).catch(() => {});
+}
+
 // ======================================================= navegación
 const pasos = $$(".paso"), N = pasos.length;
 $("#barras").innerHTML = pasos.map((_, i) => `<button type="button" aria-label="Ir al paso ${i + 1}" data-ir="${i}"></button>`).join("");
@@ -623,6 +764,7 @@ $("#btnSig").onclick = () => ir(S.paso + 1);
 // ======================================================= revisión
 const REQ = [["lugar", "Lugar del hecho", 0], ["a.nombre", "Nombre del ejecutivo(a)", 1], ["narrativa", "Redacción de hechos", 5]];
 const RECOM = [["hora", "Hora", 0], ["ruta", "Ruta", 0], ["b.nombre", "Nombre del partícipe B", 2], ["croquis", "Croquis", 5],
+               ["fotos.tio", "Foto del TIO", 1], ["fotos.licencia_a", "Foto de la licencia del ejecutivo", 1],
                ["firma_ejecutivo", "Firma del ejecutivo(a)", 7], ["firma_agente", "Firma del agente", 7]];
 function revisar() {
   $("#vistaResultado").classList.add("oculto"); $("#vistaRevision").classList.remove("oculto");
@@ -644,12 +786,13 @@ $("#listaRevision").onclick = e => { if (e.target.dataset.ir) { e.preventDefault
 $("#btnDescartar").onclick = () => {
   if (EDITAR) {
     if (!confirm("¿Salir sin guardar? Se pierden los cambios que no hayas guardado.")) return;
+    borrarFotosLocales(S);
     try { localStorage.removeItem(K_BORRADOR); } catch (e) {}
     location.href = CFG.url_volver; return;
   }
   if (confirm("¿Borrar toda la captura de este siniestro?")) reiniciar();
 };
-function reiniciar() { S = nuevo(); escribir(K_BORRADOR, S); location.reload(); }
+function reiniciar() { borrarFotosLocales(S); S = nuevo(); escribir(K_BORRADOR, S); location.reload(); }
 
 // ======================================================= envío + cola sin señal
 function csrf() {
@@ -679,7 +822,7 @@ function pintarHistorial() {
 }
 $("#btnEnviar").onclick = async () => {
   if (EDITAR) return guardarEdicion();
-  const datos = JSON.parse(JSON.stringify(S)); delete datos.paso;
+  const datos = JSON.parse(JSON.stringify(S)); delete datos.paso;  // fotos: solo claves (se leen al enviar)
   const item = { id: S.id_cliente, etiqueta: `${S.fecha} ${S.hora} · ${S.ruta || "s/ruta"} · ${S.a?.nombre || ""}`, datos };
   const c = cola().filter(x => x.id !== item.id); c.push(item);
   if (!escribir(K_COLA, c)) return;
@@ -691,12 +834,13 @@ $("#btnEnviar").onclick = async () => {
   mostrarResultado(mio);
 };
 async function guardarEdicion() {
-  const datos = JSON.parse(JSON.stringify(S)); delete datos.paso;
+  const datos = await armarEnvio(S);
   $("#btnEnviar").disabled = true; $("#btnEnviar").textContent = "Guardando…";
   let r;
   try { r = await postJSON(CFG.url_guardar, datos); }
   catch (e) { r = { ok: false, error: "Sin conexión. Tus cambios siguen guardados en este equipo; intenta de nuevo." }; }
   if (r.ok) {
+    borrarFotosLocales(S);
     try { localStorage.removeItem(K_BORRADOR); } catch (e) {}
     location.href = r.url_reporte + (r.sin_cambios ? "?sin_cambios=1" : `?guardado=${r.cambios}`);
     return;
@@ -712,13 +856,14 @@ async function procesarCola() {
     for (const item of cola()) {
       let r;
       try {
-        r = await postJSON(CFG.url_guardar, item.datos);
+        r = await postJSON(CFG.url_guardar, await armarEnvio(item.datos));
       } catch (e) { resultados.push({ id: item.id, sinRed: true }); break; } // sin señal: se intenta después
       resultados.push({ id: item.id, ...r });
       sesionExpirada = !!r.sesion;
       if (r.sesion) break;
       if (r.ok) {
         escribir(K_COLA, cola().filter(x => x.id !== item.id));
+        borrarFotosLocales(item.datos);  // ya están en el servidor
         const h = leer(K_HIST, []); h.unshift({ folio: r.folio, etiqueta: item.etiqueta }); escribir(K_HIST, h.slice(0, 15));
       }
     }
@@ -729,6 +874,7 @@ function mostrarResultado(r) {
   // se vuelven a enlazar los campos con la captura nueva
   $$("#f [name]").forEach(el => delete el.dataset.ok); pintarLesionados(); pintarAnexos(); enlazar();
   $$("canvas[data-firma]").forEach(cv => dibujarImagen(cv, null, false)); dibujarImagen(cvC, null, true);
+  pintarFotos();
   $("#vistaRevision").classList.add("oculto");
   const v = $("#vistaResultado"); v.classList.remove("oculto");
   if (r && r.ok) {
@@ -771,7 +917,7 @@ if (EDITAR) {
   const av = $("#avisoEdicion"); av.classList.remove("oculto");
   av.innerHTML = `<span>Editando <b>${esc(CFG.folio)}</b>. Los cambios quedan en el historial con tu nombre.</span>`;
 }
-pintarLesionados(); pintarAnexos(); enlazar(); ir(S.paso || 0); pintarCola(); red();
+pintarLesionados(); pintarAnexos(); enlazar(); ir(S.paso || 0); pintarCola(); red(); pintarFotos();
 if (!EDITAR && "serviceWorker" in navigator && isSecureContext) navigator.serviceWorker.register("/sw.js").catch(() => {});
 })();
 </script>

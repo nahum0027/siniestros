@@ -22,6 +22,11 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 .imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
 .imgs figure.grande{grid-column:1/-1}
 .imgs figcaption{font-size:12px;color:var(--muted);margin-top:4px}
+.galeria h3{font-size:13px;font-weight:650;color:var(--muted);margin:12px 0 6px}
+.galeria h3:first-child{margin-top:0}
+.galeria .g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.galeria a{display:block;aspect-ratio:4/3;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#f2f4f6}
+.galeria img{width:100%;height:100%;object-fit:cover;display:block}
 .estado-box{display:flex;flex-direction:column;gap:8px}
 .estado-box .linea{display:flex;justify-content:space-between;font-size:14px;gap:8px}
 .estado-box .linea span:first-child{color:var(--muted)}
@@ -132,6 +137,15 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       {% if s.correo_error %}<div class="msg error" style="margin:8px 0 0;font-size:13px">El correo no se pudo enviar: {{ s.correo_error|truncatechars:160 }}</div>
       {% elif s.correo_enviado_en %}<p style="color:var(--muted);font-size:13px;margin:8px 0 0">Correo enviado el {{ s.correo_enviado_en|date:"d/m/Y H:i" }}</p>{% endif %}
     </section>
+
+    {% if fotos %}
+    <section class="card galeria"><h2>Fotos</h2>
+      {% for etiqueta, nombres in fotos %}
+        <h3>{{ etiqueta }} ({{ nombres|length }})</h3>
+        <div class="g">{% for n in nombres %}<a href="{% url 'foto' s.folio n %}" target="_blank" rel="noopener"><img src="{% url 'foto' s.folio n %}" alt="{{ etiqueta }} {{ forloop.counter }}" loading="lazy"></a>{% endfor %}</div>
+      {% endfor %}
+    </section>
+    {% endif %}
 
     {% if imagenes %}
     <section class="card"><h2>Croquis y firmas</h2><div class="imgs">
