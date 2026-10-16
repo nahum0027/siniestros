@@ -131,6 +131,8 @@ def _escribir(ws, coord, valor, sz=9):
 
 # Celdas angostas: la etiqueta queda arriba y el valor en un segundo renglón
 DOS_RENGLONES = {"N13", "S13", "Z13", "AC13"}
+# Celdas de texto libre que pueden ser largas -> caracteres aprox. por renglón
+CRECE = {"Q38": 62}
 
 
 def _marcar(ws, coord):
@@ -148,6 +150,12 @@ def _con_etiqueta(ws, coord, valor):
     grande = InlineFont(rFont=f.name, sz=9, b=True)
     sep = "\n" if coord in DOS_RENGLONES else "  "
     c.value = CellRichText(TextBlock(chica, etiqueta + sep), TextBlock(grande, str(valor)))
+    if coord in CRECE:
+        # texto libre largo (p. ej. la NOTA): salto de línea y el renglón crece según el largo
+        c.alignment = Alignment(wrap_text=True, vertical="top", horizontal="left")
+        lineas = max(1, -(-(len(etiqueta) + len(str(valor))) // CRECE[coord]))
+        fila = ws.row_dimensions[c.row]
+        fila.height = max(fila.height or 15, 12.5 * lineas + 3)
     if sep == "\n":
         c.alignment = Alignment(wrap_text=True, vertical="top", horizontal="left")
         fila = ws.row_dimensions[c.row]

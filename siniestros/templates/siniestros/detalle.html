@@ -114,7 +114,12 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Seguro activado</dt><dd>{{ d.seguro_activo|default:"—" }}</dd></div>
       <div><dt>Pases médicos</dt><dd>{{ d.pases_medicos|default:"—" }}</dd></div>
       <div><dt>Convenio</dt><dd>{% if d.aplica_convenio %}Sí — {{ d.forma_reparacion }}{% else %}No{% endif %}</dd></div>
-      {% if d.alcohol %}<div><dt>Alcohol / sustancias</dt><dd style="color:var(--bad)">Sí</dd></div>{% endif %}
+      {% if d.alcohol %}
+      <div><dt>Alcohol / sustancias</dt><dd style="color:var(--bad)">Sí{% if d.alcohol_conductor %} — conductor {{ d.alcohol_conductor }}{% endif %}</dd></div>
+      <div><dt>Grados de alcohol</dt><dd>{{ d.alcohol_grados|default:"—" }}</dd></div>
+      <div><dt>Autoridad que arriba</dt><dd>{{ d.alcohol_autoridad|default:"—" }}</dd></div>
+      {% endif %}
+      {% if d.nota %}<div class="ancho"><dt>Nota</dt><dd>{{ d.nota }}</dd></div>{% endif %}
       <div class="ancho"><dt>Redacción de hechos</dt><dd><p class="narr">{{ d.narrativa|default:"—" }}</p></dd></div>
     </dl></section>
   </div>

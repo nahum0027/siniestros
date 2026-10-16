@@ -29,6 +29,8 @@ ETIQUETAS = {
     "narrativa": "Redacción de hechos", "seguro_activo": "Se activa el seguro", "pases_medicos": "Pases médicos",
     "seguro_garantiza": "Seguro que garantiza", "aplica_convenio": "Convenio", "forma_reparacion": "Forma de reparación",
     "b_no_aplica": "Partícipe B no aplica",
+    "alcohol_autoridad": "Autoridad que arriba (alcohol)", "alcohol_conductor": "Conductor con alcohol",
+    "alcohol_grados": "Grados de alcohol",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
     "firma_perito": "Firma del perito", "firma_conv_a": "Firma convenio (A)", "firma_conv_b": "Firma convenio (B)",
 }
@@ -123,6 +125,16 @@ def regenerar_documentos(siniestro):
     datos["anexos"] = [{**a, "aplica": {"SI": True, "NO": False}.get(a.get("aplica"))} for a in j.get("anexos", [])]
     datos["lesionados"] = [l for l in j.get("lesionados", []) if (l.get("nombre") or "").strip()]
     datos["aplica_convenio"] = bool(j.get("aplica_convenio"))
+    # alcohol: no hay casilla en el formato, se deja constancia en la NOTA del hecho de tránsito
+    if j.get("alcohol"):
+        conductor = {"A": "conductor A (ejecutivo)", "B": "conductor B"}.get(j.get("alcohol_conductor"), "conductor")
+        partes = [f"ALCOHOL: {conductor}"]
+        if str(j.get("alcohol_grados") or "").strip():
+            partes.append(f"{j['alcohol_grados']} grados")
+        if j.get("alcohol_autoridad"):
+            partes.append(f"arribó {j['alcohol_autoridad']}")
+        nota_alcohol = ", ".join(partes)
+        datos["nota"] = f"{j.get('nota', '').strip()} · {nota_alcohol}".strip(" ·")
     if j.get("b_no_aplica"):
         # sin segundo partícipe: se deja constancia en el formato y no hay convenio
         datos["b"] = {"nombre": "NO APLICA"}

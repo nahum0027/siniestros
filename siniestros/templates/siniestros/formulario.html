@@ -52,6 +52,8 @@ legend+*{clear:both}
 input[type=text],input[type=tel],input[type=date],input[type=time],input[type=number],select,textarea{
   width:100%;font:inherit;font-size:17px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;min-height:48px;appearance:none;-webkit-appearance:none}
 textarea{min-height:180px;resize:vertical;line-height:1.45}
+select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b6b78' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center}
+.sub-bloque{border-left:3px solid var(--bad);padding:2px 0 2px 12px;margin:-2px 0 12px}
 input:focus,select,textarea:focus{outline:none}
 input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--pri-soft)}
 .fila{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
@@ -262,6 +264,24 @@ footer .btn{flex:1;max-width:340px}
       <div class="campo"><label>Medio de prueba</label><input type="text" name="medio_prueba" list="pruebas"></div>
       <div class="campo"><label>Nota</label><input type="text" name="nota"></div>
       <label class="chk"><input type="checkbox" name="alcohol"> Algún conductor bajo influjo de alcohol o sustancias</label>
+      <div class="sub-bloque" data-si="alcohol=true">
+        <div class="campo"><label for="alcohol_autoridad">Autoridad que arriba</label>
+          <select id="alcohol_autoridad" name="alcohol_autoridad">
+            <option value="">Selecciona…</option>
+            <option value="AMEQ">AMEQ</option>
+            <option value="SEGURIDAD PÚBLICA">Seguridad Pública</option>
+          </select>
+        </div>
+        <div class="campo"><span class="etq">Conductor</span>
+          <div class="seg">
+            <label><input type="radio" name="alcohol_conductor" value="A"><span>Ejecutivo (A)</span></label>
+            <label><input type="radio" name="alcohol_conductor" value="B"><span>Partícipe B</span></label>
+          </div>
+        </div>
+        <div class="campo"><label for="alcohol_grados">Grados de alcohol (alcoholímetro)</label>
+          <input id="alcohol_grados" type="number" name="alcohol_grados" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+        </div>
+      </div>
     </fieldset>
     <fieldset><legend>Anexos (fundamento)</legend>
       <div id="listaAnexos"></div>
@@ -610,7 +630,8 @@ function revisar() {
   let falta = 0, html = "";
   for (const [p, n, paso] of REQ) { const ok = lleno(p); if (!ok) falta++;
     html += `<li><span class="ic ${ok ? "si" : "no"}">${ok ? "✓" : "!"}</span><span>${n}${ok ? "" : ` — <a href="#" data-ir="${paso}">obligatorio, capturar</a>`}</span></li>`; }
-  for (const [p, n, paso] of RECOM) { if (p.startsWith("b.") && S.b_no_aplica) continue; const ok = lleno(p);
+  const recom = S.alcohol ? RECOM.concat([["alcohol_autoridad", "Autoridad que arriba (alcohol)", 4], ["alcohol_grados", "Grados de alcohol", 4]]) : RECOM;
+  for (const [p, n, paso] of recom) { if (p.startsWith("b.") && S.b_no_aplica) continue; const ok = lleno(p);
     html += `<li><span class="ic ${ok ? "si" : "av"}">${ok ? "✓" : "–"}</span><span>${n}${ok ? "" : ` — <a href="#" data-ir="${paso}">vacío</a>`}</span></li>`; }
   const les = (S.lesionados || []).filter(l => l.nombre).length;
   html += `<li><span class="ic si">i</span><span>${S.b_no_aplica ? "Sin partícipe B · " : ""}${les} lesionado(s) en la lista · Convenio: ${S.aplica_convenio ? "sí" : "no"}</span></li>`;
