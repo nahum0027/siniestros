@@ -69,6 +69,8 @@ input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--
 .chk{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 10px;background:#fff;font-weight:600}
 .chk input{width:24px;height:24px;accent-color:var(--bad);flex:none}
 .chk.on{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.chk.na input{accent-color:var(--pri)}
+.chk.na.on{border-color:var(--pri);background:var(--pri-soft);color:var(--pri)}
 /* lesionados / anexos */
 .tarjeta{border:1.5px solid var(--line);border-radius:10px;padding:12px 12px 2px;margin:0 0 10px;background:#fbfcfd}
 .tarjeta-tit{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;font-weight:700}
@@ -197,6 +199,9 @@ footer .btn{flex:1;max-width:340px}
 
   <!-- 3 PARTÍCIPE B -->
   <section class="paso" data-titulo="Partícipe B">
+    <label class="chk na"><input type="checkbox" name="b_no_aplica"> No aplica (no hubo segundo partícipe)</label>
+    <div class="aviso info" data-si="b_no_aplica=true">En el formato de hecho de tránsito el partícipe B quedará como "NO APLICA". Si te equivocaste, desmarca la casilla y lo capturado sigue ahí.</div>
+    <div data-oculto-si="b_no_aplica=true">
     <fieldset><legend>Datos del partícipe</legend>
       <div class="campo"><label>Nombre completo</label><input type="text" name="b.nombre" autocapitalize="words"></div>
       <div class="campo"><label>Teléfono</label><input type="tel" name="b.telefono"></div>
@@ -233,6 +238,7 @@ footer .btn{flex:1;max-width:340px}
       <div class="campo"><label>Vehículo trasladado a</label><input type="text" name="b.trasladado_a"></div>
       <div class="campo"><label>A disposición de</label><input type="text" name="b.disposicion"></div>
     </fieldset>
+    </div>
   </section>
 
   <!-- 4 LESIONADOS -->
@@ -441,6 +447,7 @@ function calcularEdad(k) {
 function convenioProcede() {
   const a = S.a || {}, b = S.b || {};
   const hayLes = (S.lesionados || []).some(l => (l.nombre || "").trim());
+  if (S.b_no_aplica) return false;  // sin segundo partícipe no hay con quién convenir
   return !(a.lesionado || b.lesionado || a.fallecido || b.fallecido || S.alcohol || hayLes);
 }
 function reglas() {
@@ -448,10 +455,17 @@ function reglas() {
     const [p, v] = el.dataset.si.split("=");
     el.classList.toggle("oculto", String(getP(S, p) ?? "") !== v);
   });
+  $$("[data-oculto-si]").forEach(el => {
+    const [p, v] = el.dataset.ocultoSi.split("=");
+    el.classList.toggle("oculto", String(getP(S, p) ?? "") === v);
+  });
   $$(".chk input").forEach(i => i.closest(".chk").classList.toggle("on", i.checked && i.name !== "aplica_convenio"));
   const procede = convenioProcede();
   $("#convNoProcede").classList.toggle("oculto", procede);
   $("#convProcede").classList.toggle("oculto", !procede);
+  $("#convNoProcede").textContent = S.b_no_aplica
+    ? "No procede convenio entre particulares: no hay segundo partícipe."
+    : "No procede convenio entre particulares: hay lesionados, fallecidos o influjo de alcohol/sustancias.";
   if (!procede && S.aplica_convenio) { S.aplica_convenio = false; const c = $('[name="aplica_convenio"]'); if (c) c.checked = false; guardar(); }
   $("#nomEjecutivo").textContent = S.a?.nombre ? S.a.nombre : "Captura el nombre en el paso 2";
 }
@@ -596,10 +610,10 @@ function revisar() {
   let falta = 0, html = "";
   for (const [p, n, paso] of REQ) { const ok = lleno(p); if (!ok) falta++;
     html += `<li><span class="ic ${ok ? "si" : "no"}">${ok ? "✓" : "!"}</span><span>${n}${ok ? "" : ` — <a href="#" data-ir="${paso}">obligatorio, capturar</a>`}</span></li>`; }
-  for (const [p, n, paso] of RECOM) { const ok = lleno(p);
+  for (const [p, n, paso] of RECOM) { if (p.startsWith("b.") && S.b_no_aplica) continue; const ok = lleno(p);
     html += `<li><span class="ic ${ok ? "si" : "av"}">${ok ? "✓" : "–"}</span><span>${n}${ok ? "" : ` — <a href="#" data-ir="${paso}">vacío</a>`}</span></li>`; }
   const les = (S.lesionados || []).filter(l => l.nombre).length;
-  html += `<li><span class="ic si">i</span><span>${les} lesionado(s) en la lista · Convenio: ${S.aplica_convenio ? "sí" : "no"}</span></li>`;
+  html += `<li><span class="ic si">i</span><span>${S.b_no_aplica ? "Sin partícipe B · " : ""}${les} lesionado(s) en la lista · Convenio: ${S.aplica_convenio ? "sí" : "no"}</span></li>`;
   $("#listaRevision").innerHTML = html;
   $("#btnEnviar").disabled = falta > 0;
   $("#btnEnviar").textContent = falta ? `Faltan ${falta} dato(s) obligatorio(s)` : (EDITAR ? "Guardar cambios" : "Enviar siniestro");

@@ -28,6 +28,7 @@ ETIQUETAS = {
     "medio_prueba": "Medio de prueba", "nota": "Nota", "alcohol": "Influjo de alcohol/sustancias",
     "narrativa": "Redacción de hechos", "seguro_activo": "Se activa el seguro", "pases_medicos": "Pases médicos",
     "seguro_garantiza": "Seguro que garantiza", "aplica_convenio": "Convenio", "forma_reparacion": "Forma de reparación",
+    "b_no_aplica": "Partícipe B no aplica",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
     "firma_perito": "Firma del perito", "firma_conv_a": "Firma convenio (A)", "firma_conv_b": "Firma convenio (B)",
 }
@@ -122,6 +123,10 @@ def regenerar_documentos(siniestro):
     datos["anexos"] = [{**a, "aplica": {"SI": True, "NO": False}.get(a.get("aplica"))} for a in j.get("anexos", [])]
     datos["lesionados"] = [l for l in j.get("lesionados", []) if (l.get("nombre") or "").strip()]
     datos["aplica_convenio"] = bool(j.get("aplica_convenio"))
+    if j.get("b_no_aplica"):
+        # sin segundo partícipe: se deja constancia en el formato y no hay convenio
+        datos["b"] = {"nombre": "NO APLICA"}
+        datos["aplica_convenio"] = False
     for nombre in IMAGENES:
         datos[nombre] = ruta_imagen(siniestro, nombre)
     # se borran los formatos anteriores (p. ej. si ya no aplica convenio)

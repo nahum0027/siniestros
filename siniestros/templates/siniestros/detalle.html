@@ -87,7 +87,8 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Estado</dt><dd>{% if d.a.fallecido %}Fallecido{% elif d.a.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
     </dl></section>
 
-    <section class="card"><h2>Partícipe B</h2><dl>
+    <section class="card"><h2>Partícipe B</h2>
+    {% if d.b_no_aplica %}<p style="margin:0;color:var(--muted)">No aplica — no hubo segundo partícipe.</p>{% else %}<dl>
       <div class="ancho"><dt>Nombre</dt><dd>{{ d.b.nombre|default:"—" }}</dd></div>
       <div><dt>Teléfono</dt><dd>{{ d.b.telefono|default:"—" }}</dd></div>
       <div><dt>Edad / sexo</dt><dd>{{ d.b.edad|default:"—" }} / {{ d.b.sexo|default:"—" }}</dd></div>
@@ -95,7 +96,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Placas</dt><dd>{{ d.b.placas|default:"—" }} ({{ d.b.entidad|default:"—" }})</dd></div>
       <div><dt>Seguro</dt><dd>{{ d.b.seguro|default:"—" }}</dd></div>
       <div><dt>Estado</dt><dd>{% if d.b.fallecido %}Fallecido{% elif d.b.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
-    </dl></section>
+    </dl>{% endif %}</section>
 
     {% if d.lesionados %}
     <section class="card"><h2>Lesionados</h2><dl>
