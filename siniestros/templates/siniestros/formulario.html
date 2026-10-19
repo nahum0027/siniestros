@@ -331,15 +331,6 @@ footer .btn{flex:1;max-width:340px}
     <fieldset><legend>Redacción de hechos</legend>
       <div class="campo"><label class="req">¿Qué pasó?</label><textarea name="narrativa" placeholder="Siendo aproximadamente las __:__ hrs, la unidad circulaba sobre..."></textarea></div>
     </fieldset>
-    <fieldset><legend>Seguro</legend>
-      <div class="campo"><span class="etq">¿Se activa el seguro?</span>
-        <div class="seg"><label><input type="radio" name="seguro_activo" value="SÍ"><span>Sí</span></label><label><input type="radio" name="seguro_activo" value="NO"><span>No</span></label></div>
-      </div>
-      <div class="fila">
-        <div class="campo"><label>Pases médicos</label><input type="number" name="pases_medicos" inputmode="numeric" min="0"></div>
-        <div class="campo"><label>Seguro que garantiza</label><input type="text" name="seguro_garantiza"></div>
-      </div>
-    </fieldset>
     <fieldset><legend>Croquis del lugar</legend>
       <div class="lienzo"><canvas id="cvCroquis" width="1200" height="675"></canvas><div class="marca-agua">Dibuja con el dedo</div></div>
       <div class="herr">
@@ -466,7 +457,6 @@ const ANEXOS = [
 ];
 const nuevo = () => ({
   id_cliente: uid(), paso: 0, fecha: hoy(), hora: ahora(), competencia: "MUNICIPAL", agente_nombre: CFG.usuario.nombre,
-  seguro_garantiza: "HDI SEGUROS",
   a: { marca: "M. BENZ" }, b: { entidad: "QUERÉTARO" },
   lesionados: [], anexos: ANEXOS.map(() => ({ aplica: "", art: "", fracc: "" })),
 });

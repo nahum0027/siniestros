@@ -116,8 +116,6 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>
       <div><dt>Unidad responsable</dt><dd>{{ d.responsable|default:"—" }}</dd></div>
       <div><dt>Medio de prueba</dt><dd>{{ d.medio_prueba|default:"—" }}</dd></div>
-      <div><dt>Seguro activado</dt><dd>{{ d.seguro_activo|default:"—" }}</dd></div>
-      <div><dt>Pases médicos</dt><dd>{{ d.pases_medicos|default:"—" }}</dd></div>
       <div><dt>Convenio</dt><dd>{% if d.aplica_convenio %}Sí — {{ d.forma_reparacion }}{% else %}No{% endif %}</dd></div>
       {% if d.alcohol %}
       <div><dt>Alcohol / sustancias</dt><dd style="color:var(--bad)">Sí{% if d.alcohol_conductor %} — conductor {{ d.alcohol_conductor }}{% endif %}</dd></div>
