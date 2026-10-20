@@ -63,6 +63,7 @@ select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='
 .sub-bloque{border-left:3px solid var(--bad);padding:2px 0 2px 12px;margin:-2px 0 12px}
 input:focus,select,textarea:focus{outline:none}
 input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--pri-soft)}
+input:disabled{background:#eef1f4;color:var(--muted);border-style:dashed}
 .fila{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .fila3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 10px}
 @media (max-width:380px){.fila3{grid-template-columns:1fr 1fr}}
@@ -113,8 +114,8 @@ footer .btn{flex:1;max-width:340px}
 .res .folio{font-family:ui-monospace,Consolas,monospace;font-size:15px;background:var(--pri-soft);color:var(--pri);border-radius:8px;padding:6px 10px;display:inline-block;margin:6px 0 14px}
 .res a{display:block;text-align:left;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;color:var(--pri);font-weight:600;text-decoration:none}
 .oculto{display:none!important}
-.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#15212b;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:50;max-width:90vw;text-align:center;opacity:0;transition:opacity .2s}
-.toast.ver{opacity:.95}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#15212b;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:50;max-width:90vw;text-align:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility .2s}
+.toast.ver{opacity:.95;visibility:visible}
 </style>
 </head>
 <body>
@@ -193,9 +194,8 @@ footer .btn{flex:1;max-width:340px}
         <div class="campo"><label>Placas</label><input type="text" name="a.placas" autocapitalize="characters"></div>
         <div class="campo"><label>Modelo (año)</label><input type="number" name="a.modelo" inputmode="numeric"></div>
       </div>
-      <div class="campo"><label>Garantiza</label><input type="text" name="a.garantiza"></div>
       <div class="campo"><label>Trayectoria anterior</label><input type="text" name="a.trayectoria" list="trayectorias"></div>
-      <p class="ayuda">Marca M. BENZ, servicio público, propietario AMEQ y seguro HDI ya vienen en el formato.</p>
+      <p class="ayuda">Marca M. BENZ, servicio público y propietario AMEQ ya vienen en el formato. El seguro se captura en Generalidades.</p>
     </fieldset>
     <fieldset><legend>Fotos de documentos</legend>
       <div class="fotos" data-fotos="tio" data-max="2">
@@ -254,10 +254,6 @@ footer .btn{flex:1;max-width:340px}
         <div class="campo"><label>Modelo (año)</label><input type="number" name="b.modelo" inputmode="numeric"></div>
       </div>
       <div class="campo"><label>Tipo de servicio</label><input type="text" name="b.tipo_servicio" list="servicios"></div>
-      <div class="fila">
-        <div class="campo"><label>Seguro</label><input type="text" name="b.seguro"></div>
-        <div class="campo"><label>Garantiza</label><input type="text" name="b.garantiza"></div>
-      </div>
       <div class="campo"><label>Trayectoria anterior</label><input type="text" name="b.trayectoria" list="trayectorias"></div>
     </fieldset>
     <fieldset><legend>Foto de documentos</legend>
@@ -320,6 +316,21 @@ footer .btn{flex:1;max-width:340px}
           <input id="alcohol_grados" type="number" name="alcohol_grados" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
         </div>
       </div>
+    </fieldset>
+    <fieldset><legend>Seguros</legend>
+      <span class="etq" style="color:var(--ink)">Ejecutivo (A)</span>
+      <div class="fila">
+        <div class="campo"><label>Seguro comercial</label><input type="text" value="HDI SEGUROS" disabled></div>
+        <div class="campo"><label>Garantiza</label><input type="text" name="a.garantiza"></div>
+      </div>
+      <div data-oculto-si="b_no_aplica=true">
+        <span class="etq" style="color:var(--ink)">Partícipe B</span>
+        <div class="fila">
+          <div class="campo"><label>Seguro comercial</label><input type="text" name="b.seguro"></div>
+          <div class="campo"><label>Garantiza</label><input type="text" name="b.garantiza"></div>
+        </div>
+      </div>
+      <p class="ayuda" data-si="b_no_aplica=true">Sin partícipe B.</p>
     </fieldset>
     <fieldset><legend>Anexos (fundamento)</legend>
       <div id="listaAnexos"></div>
@@ -622,7 +633,7 @@ const cvC = $("#cvCroquis"), ctxC = cvC.getContext("2d"), historia = [];
 const guardarCroquis = () => { S.croquis = cvC.toDataURL("image/jpeg", 0.82); guardar(); };
 const optC = lienzo(cvC, {
   color: "#111111", grosor: 4,
-  antesDeTrazo: () => { historia.push(ctxC.getImageData(0, 0, cvC.width, cvC.height)); if (historia.length > 6) historia.shift(); },
+  antesDeTrazo: () => { historia.push(ctxC.getImageData(0, 0, cvC.width, cvC.height)); if (historia.length > 4) historia.shift(); },
   alTerminar: guardarCroquis,
 });
 dibujarImagen(cvC, S.croquis, true);
@@ -667,23 +678,43 @@ const idb = (() => {
   return { get: k => op("readonly", s => s.get(k)), set: (k, v) => op("readwrite", s => s.put(v, k)), del: k => op("readwrite", s => s.delete(k)) };
 })();
 const CAMPOS_FOTO = ["tio", "licencia_a", "licencia_b", "otras"];
-function comprimir(file, lado = 1600, calidad = 0.75) {
+// Lee las medidas de la imagen sin descomprimirla completa
+function medidas(file) {
   return new Promise((ok, mal) => {
     const url = URL.createObjectURL(file), im = new Image();
-    im.onload = () => {
-      const s = Math.min(1, lado / Math.max(im.width, im.height));
-      const cv = document.createElement("canvas"); cv.width = Math.round(im.width * s); cv.height = Math.round(im.height * s);
-      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
-      URL.revokeObjectURL(url); ok(cv.toDataURL("image/jpeg", calidad));
-    };
+    im.onload = () => { const r = { w: im.naturalWidth, h: im.naturalHeight }; URL.revokeObjectURL(url); im.src = ""; ok(r); };
     im.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No se pudo leer la imagen")); };
     im.src = url;
   });
 }
+function aJpeg(fuente, w, h, calidad) {
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  cv.getContext("2d").drawImage(fuente, 0, 0, w, h);
+  const url = cv.toDataURL("image/jpeg", calidad);
+  cv.width = cv.height = 0;  // libera la memoria del lienzo (importante en celulares)
+  return url;
+}
+// Regresa { foto: ~1600px, mini: ~320px }. Una foto de 12 MP descomprimida ocupa ~48 MB;
+// con createImageBitmap se reduce AL leerla, así el celular no se queda sin memoria.
+async function comprimir(file, lado = 1600, calidad = 0.75) {
+  const { w, h } = await medidas(file);
+  const s = Math.min(1, lado / Math.max(w, h)), W = Math.round(w * s), H = Math.round(h * s);
+  let fuente;
+  try { fuente = await createImageBitmap(file, { resizeWidth: W, resizeHeight: H, resizeQuality: "high" }); }
+  catch (e) {
+    fuente = await new Promise((ok, mal) => { const im = new Image(); im.onload = () => ok(im); im.onerror = mal; im.src = URL.createObjectURL(file); });
+  }
+  const foto = aJpeg(fuente, W, H, calidad);
+  const m = Math.min(1, 320 / Math.max(W, H));
+  const mini = aJpeg(fuente, Math.round(W * m), Math.round(H * m), 0.7);
+  if (fuente.close) fuente.close(); else URL.revokeObjectURL(fuente.src);
+  return { foto, mini };
+}
 async function srcFoto(k) {
   if (k.startsWith("srv:")) return `/reportes/${encodeURIComponent(CFG.folio)}/foto/${encodeURIComponent(k.slice(4))}`;
-  return await idb.get(k).catch(() => null);
+  return (await idb.get(k + "#mini").catch(() => null)) || (await idb.get(k).catch(() => null));
 }
+const borrarFoto = k => { idb.del(k).catch(() => {}); idb.del(k + "#mini").catch(() => {}); };
 async function pintarFotos() {
   for (const caja of $$("[data-fotos]")) {
     const campo = caja.dataset.fotos, max = +caja.dataset.max, lista = (S.fotos && S.fotos[campo]) || [];
@@ -703,21 +734,23 @@ $$("[data-fotos]").forEach(caja => {
     const archivos = [...e.target.files]; e.target.value = "";
     S.fotos ||= {}; S.fotos[campo] ||= [];
     let agregadas = 0;
+    if (archivos.length) toast(archivos.length > 1 ? `Guardando ${archivos.length} fotos…` : "Guardando foto…");
     for (const f of archivos) {
       if (S.fotos[campo].length >= max) { toast(`Máximo ${max} foto(s) aquí`); break; }
       try {
         const k = `${S.id_cliente || CFG.folio}:${campo}:${uid().slice(0, 8)}`;
-        await idb.set(k, await comprimir(f));
+        const { foto, mini } = await comprimir(f);
+        await idb.set(k, foto); await idb.set(k + "#mini", mini);
         S.fotos[campo].push(k); agregadas++;
       } catch (err) { toast("No se pudo guardar la foto: " + err.message); }
     }
-    if (agregadas) { guardar(); pintarFotos(); }
+    if (agregadas) { guardar(); pintarFotos(); toast(agregadas > 1 ? `${agregadas} fotos agregadas` : "Foto agregada"); }
   });
   caja.addEventListener("click", e => {
     const i = e.target.dataset.quitarFoto; if (i == null) return;
     if (!confirm("¿Quitar esta foto?")) return;
     const [k] = S.fotos[campo].splice(+i, 1);
-    if (!k.startsWith("srv:")) idb.del(k).catch(() => {});
+    if (!k.startsWith("srv:")) borrarFoto(k);
     guardar(); pintarFotos();
   });
 });
@@ -737,7 +770,7 @@ async function armarEnvio(datos) {
 }
 function borrarFotosLocales(datos) {
   for (const campo of CAMPOS_FOTO)
-    for (const k of (datos && datos.fotos && datos.fotos[campo]) || []) if (!k.startsWith("srv:")) idb.del(k).catch(() => {});
+    for (const k of (datos && datos.fotos && datos.fotos[campo]) || []) if (!k.startsWith("srv:")) borrarFoto(k);
 }
 
 // ======================================================= navegación

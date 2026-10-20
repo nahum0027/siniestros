@@ -99,7 +99,6 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Edad / sexo</dt><dd>{{ d.b.edad|default:"—" }} / {{ d.b.sexo|default:"—" }}</dd></div>
       <div><dt>Vehículo</dt><dd>{{ d.b.marca|default:"—" }} {{ d.b.modelo|default:"" }}</dd></div>
       <div><dt>Placas</dt><dd>{{ d.b.placas|default:"—" }} ({{ d.b.entidad|default:"—" }})</dd></div>
-      <div><dt>Seguro</dt><dd>{{ d.b.seguro|default:"—" }}</dd></div>
       <div><dt>Estado</dt><dd>{% if d.b.fallecido %}Fallecido{% elif d.b.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
     </dl>{% endif %}</section>
 
@@ -116,6 +115,8 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>
       <div><dt>Unidad responsable</dt><dd>{{ d.responsable|default:"—" }}</dd></div>
       <div><dt>Medio de prueba</dt><dd>{{ d.medio_prueba|default:"—" }}</dd></div>
+      <div><dt>Seguro A / garantiza</dt><dd>HDI SEGUROS / {{ d.a.garantiza|default:"—" }}</dd></div>
+      {% if not d.b_no_aplica %}<div><dt>Seguro B / garantiza</dt><dd>{{ d.b.seguro|default:"—" }} / {{ d.b.garantiza|default:"—" }}</dd></div>{% endif %}
       <div><dt>Convenio</dt><dd>{% if d.aplica_convenio %}Sí — {{ d.forma_reparacion }}{% else %}No{% endif %}</dd></div>
       {% if d.alcohol %}
       <div><dt>Alcohol / sustancias</dt><dd style="color:var(--bad)">Sí{% if d.alcohol_conductor %} — conductor {{ d.alcohol_conductor }}{% endif %}</dd></div>
