@@ -10,6 +10,11 @@ class Siniestro(models.Model):
         REVISION = "REVISION", "En revisión"
         VALIDADO = "VALIDADO", "Validado"
 
+    class Tipo(models.TextChoices):
+        SINIESTRO = "SINIESTRO", "Siniestro (campo)"
+        LIBERACION = "LIBERACION", "Liberación exprés"
+
+    tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.SINIESTRO, db_index=True)
     folio = models.CharField(max_length=40, unique=True)
     id_cliente = models.CharField(max_length=64, unique=True,
                                   help_text="Id que genera el celular; evita duplicados si se reintenta el envío")
@@ -49,6 +54,16 @@ class Siniestro(models.Model):
         return Path(settings.SINIESTROS_DIR) / self.folio
 
     @property
+    def es_liberacion(self):
+        return self.tipo == self.Tipo.LIBERACION
+
+    @property
+    def estado_texto(self):
+        if self.es_liberacion and self.estado == self.Estado.ENVIADO:
+            return "Por revisar"
+        return self.get_estado_display()
+
+    @property
     def bloqueado(self):
         return self.estado == self.Estado.VALIDADO
 
@@ -67,8 +82,8 @@ class Siniestro(models.Model):
             self.fecha_hecho = None
         self.ruta = (d.get("ruta") or "")[:40]
         self.economico = (d.get("economico") or "")[:40]
-        self.ejecutivo = ((d.get("a") or {}).get("nombre") or "")[:150]
-        self.lugar = (d.get("lugar") or "")[:250]
+        self.ejecutivo = ((d.get("a") or {}).get("nombre") or d.get("ejecutivo") or "")[:150]
+        self.lugar = (d.get("lugar") or d.get("ubicacion") or "")[:250]
 
 
 class Cambio(models.Model):

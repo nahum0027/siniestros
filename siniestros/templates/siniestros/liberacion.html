@@ -1,0 +1,104 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}{% if s %}Editar {{ s.folio }}{% else %}Liberación exprés{% endif %}{% endblock %}
+{% block nav_lib %}act{% endblock %}
+{% block estilos %}
+.volver{display:inline-block;margin:0 0 10px;font-weight:600;text-decoration:none}
+.lib{max-width:980px}
+.lib label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+.lib .req::after{content:" *";color:var(--bad)}
+.lib input,.lib select,.lib textarea{width:100%;font-size:16px}
+.lib textarea{min-height:150px;resize:vertical;line-height:1.45}
+.g{display:grid;gap:12px 14px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.g .c2{grid-column:span 2}.g .c4{grid-column:1/-1}
+@media (max-width:760px){.g{grid-template-columns:1fr 1fr}.g .c2,.g .c4{grid-column:1/-1}}
+.firma-caja{border:1.5px dashed #9fb0bd;border-radius:10px;background:#fff;position:relative;max-width:480px;touch-action:none}
+.firma-caja canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.firma-caja .linea{position:absolute;left:8%;right:8%;bottom:24%;border-bottom:1px solid #c5d0d8;pointer-events:none}
+.firma-caja .hint{position:absolute;left:10px;top:8px;font-size:12px;color:#9fb0bd;pointer-events:none}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px}
+.perito{font-size:14px;color:var(--muted);line-height:1.5}
+{% endblock %}
+{% block contenido %}
+<div class="lib">
+  <a class="volver" href="{% if s %}{% url 'detalle' s.folio %}{% else %}{% url 'lista' %}{% endif %}">← {% if s %}{{ s.folio }}{% else %}Reportes{% endif %}</a>
+  <h1>{% if s %}Editar liberación exprés{% else %}Liberación exprés{% endif %}</h1>
+  <p class="sub">Reporte ejecutivo de accidente capturado desde oficina.{% if s %} Los cambios quedan en el historial con tu nombre.{% endif %}</p>
+
+  {% if errores %}<div class="msg error">Falta capturar: {{ errores|join:", " }}.</div>{% endif %}
+
+  <form method="post" id="flib" autocomplete="off">{% csrf_token %}
+    <section class="card"><h2>Datos generales</h2>
+      <div class="g">
+        <div><label class="req" for="fecha">Fecha</label><input type="date" id="fecha" name="fecha" value="{{ d.fecha|default:'' }}" required></div>
+        <div class="c2"><label for="ubicacion">Ubicación</label><input id="ubicacion" name="ubicacion" value="{{ d.ubicacion|default:'' }}" list="ubicaciones" placeholder="Patio Blvrd. de la Nación"></div>
+        <div></div>
+        <div class="c2"><label class="req" for="ejecutivo">Ejecutivo(a)</label><input id="ejecutivo" name="ejecutivo" value="{{ d.ejecutivo|default:'' }}" required autocapitalize="characters"></div>
+        <div><label for="no_empleado"># Empleado</label><input id="no_empleado" name="no_empleado" value="{{ d.no_empleado|default:'' }}" inputmode="numeric"></div>
+        <div><label for="telefono"># Teléfono</label><input id="telefono" name="telefono" value="{{ d.telefono|default:'' }}" type="tel"></div>
+        <div><label for="economico"># Económico</label><input id="economico" name="economico" value="{{ d.economico|default:'' }}" inputmode="numeric"></div>
+        <div><label for="placa"># Placa</label><input id="placa" name="placa" value="{{ d.placa|default:'' }}" autocapitalize="characters"></div>
+        <div><label for="ruta">Ruta</label><input id="ruta" name="ruta" value="{{ d.ruta|default:'' }}"></div>
+      </div>
+    </section>
+
+    <section class="card"><h2>Descripción del hecho</h2>
+      <label class="req" for="descripcion">¿Qué reporta el ejecutivo(a)?</label>
+      <textarea id="descripcion" name="descripcion" required placeholder="El operador reporta que…">{{ d.descripcion|default:'' }}</textarea>
+    </section>
+
+    <section class="card"><h2>Seguro</h2>
+      <div class="g">
+        <div><label for="activa_seguro">Activa seguro</label>
+          <select id="activa_seguro" name="activa_seguro">
+            <option value="">—</option>
+            <option value="SÍ" {% if d.activa_seguro == "SÍ" %}selected{% endif %}>Sí</option>
+            <option value="NO" {% if d.activa_seguro == "NO" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div><label for="motivo_activacion">Motivo de activación</label><input id="motivo_activacion" name="motivo_activacion" value="{{ d.motivo_activacion|default:'' }}"></div>
+        <div><label for="causal">Causal</label><input id="causal" name="causal" value="{{ d.causal|default:'' }}"></div>
+        <div><label for="pase_medico">Pase médico</label><input id="pase_medico" name="pase_medico" value="{{ d.pase_medico|default:'' }}"></div>
+      </div>
+    </section>
+
+    <section class="card"><h2>Firmas</h2>
+      <div class="g">
+        <div class="c2">
+          <label>Firma del ejecutivo(a) <span style="font-weight:400">(opcional; si no firma aquí, se firma impreso)</span></label>
+          <div class="firma-caja"><div class="linea"></div><span class="hint">Firma con el mouse o el dedo</span><canvas id="cvFirma" width="900" height="300"></canvas></div>
+          <div style="margin-top:6px"><button type="button" class="btn sec" id="btnBorrarFirma" style="min-height:34px;padding:4px 12px;font-size:13px">Borrar firma</button></div>
+          <input type="hidden" name="firma_ejecutivo" id="firma_ejecutivo" value="{{ firma }}">
+        </div>
+        <div class="c2">
+          <label>Perito en H.T.T.</label>
+          <p class="perito">Hugo Alberto Martínez Olvera<br>Perito en H.T.T<br>Analista del Centro de Capacitación del Personal Operativo del Transporte del Estado de Querétaro</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="acciones">
+      <a class="btn sec" href="{% if s %}{% url 'detalle' s.folio %}{% else %}{% url 'lista' %}{% endif %}">Cancelar</a>
+      <button type="submit" class="btn pri" id="btnGuardar">{% if s %}Guardar cambios{% else %}Guardar liberación{% endif %}</button>
+    </div>
+  </form>
+</div>
+<datalist id="ubicaciones"><option>Patio Blvrd. de la Nación</option></datalist>
+
+<script>
+(() => {
+  const cv = document.getElementById("cvFirma"), ctx = cv.getContext("2d"), campo = document.getElementById("firma_ejecutivo");
+  ctx.lineCap = ctx.lineJoin = "round"; ctx.strokeStyle = "#0b1f6b"; ctx.lineWidth = 4.5;
+  if (campo.value) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0, cv.width, cv.height); im.src = campo.value; }
+  const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+  let ult = null, cambio = false;
+  cv.addEventListener("pointerdown", e => { e.preventDefault(); cv.setPointerCapture(e.pointerId); ult = pos(e); ctx.beginPath(); ctx.arc(ult[0], ult[1], 2, 0, 7); ctx.fillStyle = ctx.strokeStyle; ctx.fill(); });
+  cv.addEventListener("pointermove", e => { if (!ult) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(...ult); ctx.lineTo(...p); ctx.stroke(); ult = p; cambio = true; });
+  const fin = () => { if (!ult) return; ult = null; campo.value = cv.toDataURL("image/png"); };
+  cv.addEventListener("pointerup", fin); cv.addEventListener("pointercancel", fin);
+  document.getElementById("btnBorrarFirma").onclick = () => { ctx.clearRect(0, 0, cv.width, cv.height); campo.value = ""; };
+  document.getElementById("flib").addEventListener("submit", () => {
+    const b = document.getElementById("btnGuardar"); b.disabled = true; b.textContent = "Guardando…";
+  });
+})();
+</script>
+{% endblock %}

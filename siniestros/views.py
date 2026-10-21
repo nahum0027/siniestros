@@ -55,10 +55,24 @@ def _cfg_usuario(user):
 # ------------------------------------------------------------------ inicio
 @login_required
 def inicio(request):
-    """A dónde mandar a cada quien después del login."""
-    if request.user.has_perm("siniestros.capturar_siniestro") and not sv.puede_revisar(request.user):
+    """Pantalla de inicio con los módulos. Los agentes de campo (un solo módulo) van directo a capturar."""
+    u = request.user
+    puede_capturar, revisor = u.has_perm("siniestros.capturar_siniestro"), sv.puede_revisar(u)
+    if puede_capturar and not revisor:
         return redirect("formulario")
-    return redirect("lista")
+    base = Siniestro.objects.all() if revisor else Siniestro.objects.filter(capturado_por=u)
+    pendientes = [Siniestro.Estado.ENVIADO, Siniestro.Estado.REVISION]
+    hoy = timezone.localdate()
+    S, L = Siniestro.Tipo.SINIESTRO, Siniestro.Tipo.LIBERACION
+    return render(request, "siniestros/inicio.html", {
+        "puede_capturar": puede_capturar, "revisor": revisor,
+        "sin_pend": base.filter(tipo=S, estado__in=pendientes).count(),
+        "sin_hoy": base.filter(tipo=S, creado__date=hoy).count(),
+        "lib_pend": base.filter(tipo=L, estado__in=pendientes).count(),
+        "lib_hoy": base.filter(tipo=L, creado__date=hoy).count(),
+        "total": base.count(), "pendientes": base.filter(estado__in=pendientes).count(),
+        "recientes": base.select_related("capturado_por")[:5],
+    })
 
 
 # ------------------------------------------------------------------ captura en campo
@@ -125,6 +139,9 @@ def lista(request):
     if q:
         qs = qs.filter(Q(folio__icontains=q) | Q(ruta__icontains=q) | Q(economico__icontains=q)
                        | Q(ejecutivo__icontains=q) | Q(lugar__icontains=q))
+    tipo = request.GET.get("tipo", "")
+    if tipo in Siniestro.Tipo.values:
+        qs = qs.filter(tipo=tipo)
     estado = request.GET.get("estado", "")
     if estado in Siniestro.Estado.values:
         qs = qs.filter(estado=estado)
@@ -140,7 +157,8 @@ def lista(request):
     estados = [(e, cortos[e], base.filter(estado=e).count()) for e in Siniestro.Estado.values]
     return render(request, "siniestros/lista.html", {
         "pagina": pagina, "q": q, "estado": estado, "desde": desde, "hasta": hasta,
-        "estados": estados, "total": base.count(), "revisor": revisor,
+        "estados": estados, "total": base.count(), "revisor": revisor, "tipo": tipo,
+        "tipos": [(t, n, base.filter(tipo=t).count()) for t, n in (("SINIESTRO", "Siniestros"), ("LIBERACION", "Liberaciones exprés"))],
         "puede_capturar": request.user.has_perm("siniestros.capturar_siniestro"),
     })
 
@@ -193,6 +211,8 @@ def descargar(request, folio, archivo):
 @login_required
 def editar(request, folio):
     s = get_object_or_404(Siniestro, folio=folio)
+    if s.es_liberacion:
+        return redirect("liberacion_editar", folio=folio)
     if not sv.puede_editar(request.user, s):
         messages.error(request, "Este reporte está validado y ya no se puede editar." if s.bloqueado
                        else "No tienes permiso para editar reportes.")
@@ -307,4 +327,73 @@ def cambiar_contrasena(request):
             return redirect(destino)
     return render(request, "siniestros/cambiar_contrasena.html", {
         "form": form, "forzado": perfil.debe_cambiar_contrasena, "next": destino,
+    })
+
+
+# ------------------------------------------------------------------ liberación exprés (oficina)
+from django.core.exceptions import PermissionDenied
+from datetime import date as _date
+
+CAMPOS_LIB = ["fecha", "ubicacion", "ejecutivo", "no_empleado", "telefono", "economico", "placa", "ruta",
+              "descripcion", "activa_seguro", "motivo_activacion", "causal", "pase_medico"]
+OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)", "descripcion": "Descripción del hecho"}
+
+
+@login_required
+def liberacion(request, folio=None):
+    """Alta (sin folio) y edición (con folio) de una liberación exprés."""
+    if not sv.puede_revisar(request.user):
+        raise PermissionDenied
+    s = None
+    if folio:
+        s = get_object_or_404(Siniestro, folio=folio, tipo=Siniestro.Tipo.LIBERACION)
+        if not sv.puede_editar(request.user, s):
+            messages.error(request, "Este reporte está validado y ya no se puede editar.")
+            return redirect("detalle", folio=folio)
+
+    errores = []
+    if request.method == "POST":
+        datos = {k: request.POST.get(k, "").strip() for k in CAMPOS_LIB}
+        firma = request.POST.get("firma_ejecutivo", "")
+        errores = [n for k, n in OBLIGATORIOS_LIB.items() if not datos[k]]
+        if not errores:
+            with transaction.atomic():
+                if s is None:
+                    ahora = datetime.now()
+                    id_cliente = uuid.uuid4().hex
+                    s = Siniestro(tipo=Siniestro.Tipo.LIBERACION, folio=f"LIB-{ahora:%Y%m%d-%H%M%S}-{id_cliente[-4:].upper()}",
+                                  id_cliente=id_cliente, datos=datos, capturado_por=request.user)
+                    s.copiar_resumen()
+                    s.save()
+                    sv.guardar_imagenes(s, {"firma_ejecutivo": firma})
+                    sv.regenerar_documentos(s)
+                    Cambio.objects.create(siniestro=s, usuario=request.user, tipo=Cambio.Tipo.CREADO,
+                                          descripcion="Capturado en oficina (liberación exprés)")
+                    nuevo = True
+                else:
+                    cambios = sv.diferencias(s.datos, datos)
+                    imgs = sv.guardar_imagenes(s, {"firma_ejecutivo": firma})
+                    cambios += [{"campo": n, "etiqueta": sv.etiqueta(n), "antes": "(imagen)", "despues": "(imagen nueva)"} for n in imgs]
+                    if not cambios:
+                        return redirect(f"/reportes/{s.folio}/?sin_cambios=1")
+                    s.datos = datos
+                    s.copiar_resumen()
+                    if s.estado == Siniestro.Estado.ENVIADO:
+                        s.estado = Siniestro.Estado.REVISION
+                    s.save()
+                    sv.regenerar_documentos(s)
+                    Cambio.objects.create(siniestro=s, usuario=request.user, tipo=Cambio.Tipo.EDITADO,
+                                          descripcion=f"{len(cambios)} campo(s) corregido(s)", detalle=cambios)
+                    nuevo = False
+            if nuevo:
+                sv.enviar_correo(s, request)
+                messages.success(request, f"Liberación exprés {s.folio} guardada.")
+                return redirect("detalle", folio=s.folio)
+            return redirect(f"/reportes/{s.folio}/?guardado={len(cambios)}")
+    else:
+        datos = dict(s.datos) if s else {"fecha": _date.today().isoformat()}
+        firma = (sv.imagen_como_data_url(s, "firma_ejecutivo") if s else "") or ""
+
+    return render(request, "siniestros/liberacion.html", {
+        "s": s, "d": datos, "firma": firma, "errores": errores,
     })

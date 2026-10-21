@@ -6,6 +6,7 @@
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
 .chip{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border-radius:999px;background:#fff;border:1.5px solid var(--line);text-decoration:none;color:var(--ink);font-weight:600;font-size:14px}
 .chip b{font-variant-numeric:tabular-nums;color:var(--muted)}
+.tag-lib{display:inline-block;font-size:11px;font-weight:700;color:#6b3fa0;background:#f1e9fb;border-radius:999px;padding:1px 8px;margin-top:3px;font-family:system-ui,sans-serif}
 .chip.act{border-color:var(--pri);background:var(--pri);color:#fff}
 .chip.act b{color:#fff}
 .filtros{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}
@@ -37,22 +38,32 @@ tr.fila:hover td{background:#f7f9fb}
     <h1>{% if revisor %}Reportes de siniestros{% else %}Mis reportes{% endif %}</h1>
     <p class="sub" style="margin:0">{% if revisor %}Todos los reportes capturados en campo.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
   </div>
-  {% if puede_capturar %}<a class="btn pri" href="{% url 'formulario' %}">+ Capturar siniestro</a>{% endif %}
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    {% if revisor %}<a class="btn" href="{% url 'liberacion_nueva' %}">+ Liberación exprés</a>{% endif %}
+    {% if puede_capturar %}<a class="btn pri" href="{% url 'formulario' %}">+ Capturar siniestro</a>{% endif %}
+  </div>
 </div>
 
+{% if revisor %}
 <div class="chips">
-  <a class="chip {% if not estado %}act{% endif %}" href="?q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Todos <b>{{ total }}</b></a>
+  <a class="chip {% if not tipo %}act{% endif %}" href="?estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Todos los tipos</a>
+  {% for valor, nombre, n in tipos %}<a class="chip {% if tipo == valor %}act{% endif %}" href="?tipo={{ valor }}&estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">{{ nombre }} <b>{{ n }}</b></a>{% endfor %}
+</div>
+{% endif %}
+<div class="chips">
+  <a class="chip {% if not estado %}act{% endif %}" href="?tipo={{ tipo }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Todos <b>{{ total }}</b></a>
   {% for valor, nombre, n in estados %}
-    <a class="chip {% if estado == valor %}act{% endif %}" href="?estado={{ valor }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">{{ nombre }} <b>{{ n }}</b></a>
+    <a class="chip {% if estado == valor %}act{% endif %}" href="?estado={{ valor }}&tipo={{ tipo }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">{{ nombre }} <b>{{ n }}</b></a>
   {% endfor %}
 </div>
 
 <form class="card filtros" method="get">
   <input type="hidden" name="estado" value="{{ estado }}">
+  <input type="hidden" name="tipo" value="{{ tipo }}">
   <div class="q"><label for="q">Buscar</label><input id="q" name="q" value="{{ q }}" placeholder="Folio, ruta, económico, ejecutivo o lugar"></div>
   <div><label for="desde">Desde</label><input id="desde" type="date" name="desde" value="{{ desde }}"></div>
   <div><label for="hasta">Hasta</label><input id="hasta" type="date" name="hasta" value="{{ hasta }}"></div>
-  <div style="display:flex;gap:6px"><button class="btn pri" type="submit">Buscar</button>{% if q or desde or hasta %}<a class="btn sec" href="?estado={{ estado }}">Limpiar</a>{% endif %}</div>
+  <div style="display:flex;gap:6px"><button class="btn pri" type="submit">Buscar</button>{% if q or desde or hasta %}<a class="btn sec" href="?estado={{ estado }}&tipo={{ tipo }}">Limpiar</a>{% endif %}</div>
 </form>
 
 <div class="card" style="padding:6px 10px">
@@ -62,13 +73,13 @@ tr.fila:hover td{background:#f7f9fb}
     <tbody>
     {% for s in pagina %}
       <tr class="fila" onclick="location.href='{% url 'detalle' s.folio %}'">
-        <td><a class="folio" href="{% url 'detalle' s.folio %}">{{ s.folio }}</a></td>
+        <td><a class="folio" href="{% url 'detalle' s.folio %}">{{ s.folio }}</a>{% if s.es_liberacion %}<br><span class="tag-lib">Liberación exprés</span>{% endif %}</td>
         <td class="num">{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} <span class="tenue">{{ s.datos.hora }}</span></td>
         <td class="num">{{ s.ruta|default:"—" }} / {{ s.economico|default:"—" }}</td>
         <td>{{ s.ejecutivo|default:"—" }}</td>
         <td class="tenue">{{ s.lugar|truncatechars:60|default:"—" }}</td>
         {% if revisor %}<td class="tenue">{{ s.capturado_por.get_full_name|default:s.capturado_por.username }}</td>{% endif %}
-        <td><span class="badge {{ s.estado }}">{{ s.get_estado_display }}</span></td>
+        <td><span class="badge {{ s.estado }}">{{ s.estado_texto }}</span></td>
       </tr>
     {% endfor %}
     </tbody>
@@ -76,7 +87,7 @@ tr.fila:hover td{background:#f7f9fb}
   <div class="tarjetas">
     {% for s in pagina %}
       <a class="tj" href="{% url 'detalle' s.folio %}">
-        <div class="l1"><span class="folio">{{ s.folio }}</span><span class="badge {{ s.estado }}">{{ s.get_estado_display }}</span></div>
+        <div class="l1"><span class="folio">{{ s.folio }}{% if s.es_liberacion %} <span class="tag-lib">Liberación</span>{% endif %}</span><span class="badge {{ s.estado }}">{{ s.estado_texto }}</span></div>
         <div>{{ s.ejecutivo|default:"—" }} · Ruta {{ s.ruta|default:"—" }}</div>
         <div class="tenue">{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} {{ s.datos.hora }} · {{ s.lugar|truncatechars:50 }}</div>
       </a>
@@ -89,9 +100,9 @@ tr.fila:hover td{background:#f7f9fb}
 
 {% if pagina.paginator.num_pages > 1 %}
 <div class="pag">
-  {% if pagina.has_previous %}<a class="btn sec" href="?p={{ pagina.previous_page_number }}&estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">← Anterior</a>{% endif %}
+  {% if pagina.has_previous %}<a class="btn sec" href="?p={{ pagina.previous_page_number }}&estado={{ estado }}&tipo={{ tipo }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">← Anterior</a>{% endif %}
   <span class="tenue">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
-  {% if pagina.has_next %}<a class="btn sec" href="?p={{ pagina.next_page_number }}&estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Siguiente →</a>{% endif %}
+  {% if pagina.has_next %}<a class="btn sec" href="?p={{ pagina.next_page_number }}&estado={{ estado }}&tipo={{ tipo }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Siguiente →</a>{% endif %}
 </div>
 {% endif %}
 {% endblock %}

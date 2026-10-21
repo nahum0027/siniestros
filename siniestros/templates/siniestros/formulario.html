@@ -939,7 +939,7 @@ addEventListener("online", red); addEventListener("offline", red);
 setInterval(() => { if (!EDITAR && navigator.onLine && cola().length) procesarCola(); }, 30000);
 
 // ======================================================= arranque
-if (CFG.usuario.puede_revisar) $("#lnkReportes").textContent = "Reportes";
+if (CFG.usuario.puede_revisar) { $("#lnkReportes").textContent = "Inicio"; $("#lnkReportes").href = "/inicio/"; }
 if (EDITAR) {
   document.title = `Editar ${CFG.folio}`;
   pasos[N - 1].dataset.titulo = "Revisar y guardar";

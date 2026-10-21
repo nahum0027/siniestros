@@ -11,7 +11,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
-from .generar import generar_todo
+from .generar import generar_todo, llenar_liberacion
 from .models import Cambio, Siniestro
 
 log = logging.getLogger(__name__)
@@ -37,6 +37,10 @@ ETIQUETAS = {
     "narrativa": "Redacción de hechos", "seguro_activo": "Se activa el seguro", "pases_medicos": "Pases médicos",
     "seguro_garantiza": "Seguro que garantiza", "aplica_convenio": "Convenio", "forma_reparacion": "Forma de reparación",
     "b_no_aplica": "Partícipe B no aplica",
+    # liberación exprés
+    "ubicacion": "Ubicación", "ejecutivo": "Ejecutivo(a)", "placa": "Placa", "no_empleado": "No. empleado",
+    "telefono": "Teléfono", "descripcion": "Descripción del hecho", "activa_seguro": "Activa seguro",
+    "motivo_activacion": "Motivo de activación", "pase_medico": "Pase médico",
     "alcohol_autoridad": "Autoridad que arriba (alcohol)", "alcohol_conductor": "Conductor con alcohol",
     "alcohol_grados": "Grados de alcohol",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
@@ -178,6 +182,8 @@ def _fecha(txt):
 
 def regenerar_documentos(siniestro):
     """Vuelve a llenar los formatos con los datos actuales del siniestro."""
+    if siniestro.es_liberacion:
+        return regenerar_liberacion(siniestro)
     j = siniestro.datos
     datos = dict(j)
     datos["fecha"] = _fecha(j.get("fecha")) or siniestro.creado.date()
@@ -252,13 +258,39 @@ def limpiar(j):
 
 
 # ------------------------------------------------------------------ correo
+def regenerar_liberacion(siniestro):
+    datos = dict(siniestro.datos)
+    datos["fecha"] = _fecha(datos.get("fecha")) or siniestro.creado.date()
+    datos["firma_ejecutivo"] = ruta_imagen(siniestro, "firma_ejecutivo")
+    for viejo in siniestro.carpeta.glob("*.*"):
+        if viejo.suffix in (".docx", ".xlsx", ".pdf"):
+            viejo.unlink()
+    siniestro.carpeta.mkdir(parents=True, exist_ok=True)
+    return [llenar_liberacion(datos, siniestro.carpeta)]
+
+
 def enviar_correo(siniestro, request=None):
     destinatarios = getattr(settings, "SINIESTROS_CORREOS", [])
     if not destinatarios:
         return False
     d = siniestro.datos
-    asunto = f"Siniestro {siniestro.folio} · Ruta {d.get('ruta') or 's/r'} · {d.get('fecha', '')}"
     enlace = request.build_absolute_uri(f"/reportes/{siniestro.folio}/") if request else ""
+    capturo = siniestro.capturado_por.get_full_name() or siniestro.capturado_por.username
+    if siniestro.es_liberacion:
+        asunto = f"Liberación exprés {siniestro.folio} · {d.get('ejecutivo') or ''} · Eco {d.get('economico') or 's/n'}"
+        cuerpo = "\n".join([
+            "Se registró una liberación exprés desde oficina.", "",
+            f"Folio: {siniestro.folio}",
+            f"Fecha: {d.get('fecha', '')}",
+            f"Ubicación: {d.get('ubicacion', '')}",
+            f"Ejecutivo(a): {d.get('ejecutivo', '')} (empleado {d.get('no_empleado', '')})",
+            f"Económico / placa / ruta: {d.get('economico', '')} / {d.get('placa', '')} / {d.get('ruta', '')}",
+            f"Activa seguro: {d.get('activa_seguro', '')}",
+            f"Capturó: {capturo}", "",
+            f"Ver en la plataforma: {enlace}" if enlace else "",
+        ])
+        return _mandar(siniestro, asunto, cuerpo, destinatarios)
+    asunto = f"Siniestro {siniestro.folio} · Ruta {d.get('ruta') or 's/r'} · {d.get('fecha', '')}"
     cuerpo = "\n".join([
         f"Se registró un siniestro desde campo.",
         "",
@@ -267,12 +299,16 @@ def enviar_correo(siniestro, request=None):
         f"Ruta / económico: {d.get('ruta', '')} / {d.get('economico', '')}",
         f"Lugar: {d.get('lugar', '')}",
         f"Ejecutivo(a): {(d.get('a') or {}).get('nombre', '')}",
-        f"Capturó: {siniestro.capturado_por.get_full_name() or siniestro.capturado_por.username}",
+        f"Capturó: {capturo}",
         "",
         f"Ver y revisar en la plataforma: {enlace}" if enlace else "",
         "",
         "Se adjuntan los formatos tal como se capturaron en campo; la versión vigente es la de la plataforma.",
     ])
+    return _mandar(siniestro, asunto, cuerpo, destinatarios)
+
+
+def _mandar(siniestro, asunto, cuerpo, destinatarios):
     msg = EmailMessage(asunto, cuerpo, to=destinatarios)
     for nombre in siniestro.documentos():
         msg.attach_file(str(siniestro.carpeta / nombre))

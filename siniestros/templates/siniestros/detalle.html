@@ -54,9 +54,9 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 
 <div class="cab">
   <div>
-    <p class="folio">{{ s.folio }}</p>
-    <span class="badge {{ s.estado }}">{{ s.get_estado_display }}</span>
-    <span class="tenue" style="color:var(--muted);font-size:13px;margin-left:6px">Capturado por {{ s.capturado_por.get_full_name|default:s.capturado_por.username }} · {{ s.creado|date:"d/m/Y H:i" }}</span>
+    <p class="folio">{{ s.folio }}{% if s.es_liberacion %} <span style="font:700 12px system-ui,sans-serif;color:#6b3fa0;background:#f1e9fb;border-radius:999px;padding:2px 9px;vertical-align:middle">Liberación exprés</span>{% endif %}</p>
+    <span class="badge {{ s.estado }}">{{ s.estado_texto }}</span>
+    <span class="tenue" style="color:var(--muted);font-size:13px;margin-left:6px">{% if s.es_liberacion %}Capturado en oficina por{% else %}Capturado por{% endif %} {{ s.capturado_por.get_full_name|default:s.capturado_por.username }} · {{ s.creado|date:"d/m/Y H:i" }}</span>
   </div>
   <div class="acciones">
     {% if puede_editar %}
@@ -72,6 +72,23 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 
 <div class="rejilla">
   <div>
+    {% if s.es_liberacion %}
+    <section class="card"><h2>Liberación exprés · datos generales</h2><dl>
+      <div><dt>Fecha</dt><dd>{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }}</dd></div>
+      <div class="ancho"><dt>Ubicación</dt><dd>{{ d.ubicacion|default:"—" }}</dd></div>
+      <div class="ancho"><dt>Ejecutivo(a)</dt><dd>{{ d.ejecutivo|default:"—" }}</dd></div>
+      <div><dt># Empleado</dt><dd>{{ d.no_empleado|default:"—" }}</dd></div>
+      <div><dt># Teléfono</dt><dd>{{ d.telefono|default:"—" }}</dd></div>
+      <div><dt>Eco / placa / ruta</dt><dd>{{ d.economico|default:"—" }} / {{ d.placa|default:"—" }} / {{ d.ruta|default:"—" }}</dd></div>
+    </dl></section>
+    <section class="card"><h2>Descripción del hecho</h2><p class="narr">{{ d.descripcion|default:"—" }}</p></section>
+    <section class="card"><h2>Seguro</h2><dl>
+      <div><dt>Activa seguro</dt><dd>{{ d.activa_seguro|default:"—" }}</dd></div>
+      <div><dt>Motivo de activación</dt><dd>{{ d.motivo_activacion|default:"—" }}</dd></div>
+      <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
+      <div><dt>Pase médico</dt><dd>{{ d.pase_medico|default:"—" }}</dd></div>
+    </dl></section>
+    {% else %}
     <section class="card"><h2>Datos generales</h2><dl>
       <div><dt>Fecha y hora</dt><dd>{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} {{ d.hora }}</dd></div>
       <div><dt>Ruta / económico</dt><dd>{{ d.ruta|default:"—" }} / {{ d.economico|default:"—" }}</dd></div>
@@ -126,6 +143,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       {% if d.nota %}<div class="ancho"><dt>Nota</dt><dd>{{ d.nota }}</dd></div>{% endif %}
       <div class="ancho"><dt>Redacción de hechos</dt><dd><p class="narr">{{ d.narrativa|default:"—" }}</p></dd></div>
     </dl></section>
+    {% endif %}
   </div>
 
   <div>

@@ -241,3 +241,19 @@ def generar_todo(datos, salida):
     if datos.get("aplica_convenio"):
         archivos.append(llenar_convenio(datos, salida))
     return archivos
+
+
+# ---------------------------------------------------------------- LIBERACIÓN EXPRÉS
+def llenar_liberacion(datos, salida):
+    """Reporte ejecutivo (liberación exprés), capturado desde oficina."""
+    doc = DocxTemplate(PLANTILLAS / "liberacion.docx")
+    f = datos.get("fecha")
+    ctx = {k: datos.get(k, "") or "" for k in (
+        "ubicacion", "ejecutivo", "economico", "placa", "ruta", "no_empleado", "telefono",
+        "descripcion", "activa_seguro", "motivo_activacion", "causal", "pase_medico")}
+    ctx["fecha"] = f.strftime("%d.%m.%Y") if f else ""
+    ctx["firma_ejecutivo"] = _img(doc, datos.get("firma_ejecutivo"), 45)
+    doc.render(ctx)
+    ruta = Path(salida) / "reporte_ejecutivo.docx"
+    doc.save(ruta)
+    return ruta

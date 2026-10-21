@@ -1,0 +1,77 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block nav_inicio %}act{% endblock %}
+{% block estilos %}
+.saludo{margin:4px 0 18px}
+.saludo h1{font-size:24px}
+.modulos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0 0 22px}
+@media (max-width:900px){.modulos{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.modulos{grid-template-columns:1fr}}
+.mod{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--card);border-radius:16px;padding:20px 20px 18px;
+  text-decoration:none;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05);border:1.5px solid transparent;transition:border-color .15s,transform .15s,box-shadow .15s;min-height:210px}
+.mod:hover{border-color:var(--mc);transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,61,94,.10)}
+.mod:focus-visible{outline:3px solid var(--pri-soft);border-color:var(--mc)}
+.mod .ico{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:var(--mbg);color:var(--mc)}
+.mod .ico svg{width:28px;height:28px}
+.mod h2{font-size:19px;margin:2px 0 0;color:var(--ink);letter-spacing:0;text-transform:none}
+.mod p{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+.mod .pie{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mod .dato{font-size:13px;font-weight:650;background:var(--bg);border-radius:999px;padding:4px 10px;color:var(--ink)}
+.mod .dato b{color:var(--mc)}
+.mod .ir{margin-left:auto;font-weight:700;color:var(--mc);font-size:14px}
+.m-sin{--mc:#0f3d5e;--mbg:#e3edf5}
+.m-lib{--mc:#6b3fa0;--mbg:#f1e9fb}
+.m-rep{--mc:#11735a;--mbg:#e1f3ec}
+.recientes h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--pri-2);margin:0 0 10px}
+.rec{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2);text-decoration:none;color:var(--ink)}
+.rec:last-child{border:0}
+.rec .f{font-family:ui-monospace,Consolas,monospace;font-weight:700;font-size:13px;color:var(--pri);white-space:nowrap}
+.rec .q{flex:1;min-width:0;color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec .badge{margin-left:auto}
+@media (max-width:600px){.rec{flex-wrap:wrap;gap:4px 8px}.rec .q{flex-basis:100%;order:3;white-space:normal}}
+.tag-lib{display:inline-block;font-size:11px;font-weight:700;color:#6b3fa0;background:#f1e9fb;border-radius:999px;padding:1px 8px}
+{% endblock %}
+{% block contenido %}
+<div class="saludo">
+  <h1>Hola, {{ user.first_name|default:user.username }}</h1>
+  <p class="sub" style="margin:0">{% if pendientes %}Hay <b>{{ pendientes }}</b> reporte{{ pendientes|pluralize }} pendiente{{ pendientes|pluralize }} de revisar.{% else %}No hay reportes pendientes de revisar.{% endif %}</p>
+</div>
+
+<div class="modulos">
+  {% if puede_capturar %}
+  <a class="mod m-sin" href="{% url 'formulario' %}">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h-1a1 1 0 0 1-1-1v-4l2-5h10l3 5h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/><path d="M5 12h13"/></svg></span>
+    <h2>Capturar siniestro</h2>
+    <p>Formulario de campo: datos del hecho, partícipes, croquis, fotos y firmas. Genera acta, hecho de tránsito y convenio.</p>
+    <div class="pie">{% if revisor %}<span class="dato"><b>{{ sin_pend }}</b> por revisar</span>{% endif %}<span class="dato"><b>{{ sin_hoy }}</b> hoy</span><span class="ir">Abrir →</span></div>
+  </a>
+  {% endif %}
+  {% if revisor %}
+  <a class="mod m-lib" href="{% url 'liberacion_nueva' %}">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/></svg></span>
+    <h2>Liberación exprés</h2>
+    <p>Reporte ejecutivo capturado desde oficina, en una sola pantalla. Genera el reporte de accidente del ejecutivo.</p>
+    <div class="pie"><span class="dato"><b>{{ lib_pend }}</b> por revisar</span><span class="dato"><b>{{ lib_hoy }}</b> hoy</span><span class="ir">Nueva →</span></div>
+  </a>
+  {% endif %}
+  <a class="mod m-rep" href="{% url 'lista' %}">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></span>
+    <h2>{% if revisor %}Reportes{% else %}Mis reportes{% endif %}</h2>
+    <p>Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.</p>
+    <div class="pie"><span class="dato"><b>{{ total }}</b> en total</span><span class="ir">Ver →</span></div>
+  </a>
+</div>
+
+{% if recientes %}
+<section class="card recientes"><h2>Últimos reportes</h2>
+  {% for s in recientes %}
+  <a class="rec" href="{% url 'detalle' s.folio %}">
+    <span class="f">{{ s.folio }}</span>
+    {% if s.es_liberacion %}<span class="tag-lib">Liberación</span>{% endif %}
+    <span class="q">{{ s.ejecutivo|default:"—" }}{% if s.lugar %} · {{ s.lugar }}{% endif %}</span>
+    <span class="badge {{ s.estado }}">{{ s.estado_texto }}</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

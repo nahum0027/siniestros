@@ -21,6 +21,8 @@ urlpatterns = [
     path("reportes/<str:folio>/imagen/<str:nombre>", views.imagen, name="imagen"),
     path("reportes/<str:folio>/foto/<str:nombre>", views.foto, name="foto"),
     path("api/reportes/<str:folio>/", views.guardar_edicion, name="guardar_edicion"),
+    path("liberacion/nueva/", views.liberacion, name="liberacion_nueva"),
+    path("liberacion/<str:folio>/editar/", views.liberacion, name="liberacion_editar"),
     path("descargar/<str:folio>/<str:archivo>", views.descargar, name="descargar"),
     # app instalable
     path("sw.js", views.service_worker, name="sw"),
