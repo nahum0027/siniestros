@@ -75,12 +75,10 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
     {% if s.es_liberacion %}
     <section class="card"><h2>Liberación exprés · datos generales</h2><dl>
       <div><dt>Fecha</dt><dd>{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }}</dd></div>
-      <div class="ancho"><dt>Ubicación</dt><dd>{{ d.ubicacion|default:"—" }}</dd></div>
       <div class="ancho"><dt>Ejecutivo(a)</dt><dd>{{ d.ejecutivo|default:"—" }}</dd></div>
       <div><dt># Empleado</dt><dd>{{ d.no_empleado|default:"—" }}</dd></div>
       <div><dt>Económico / ruta</dt><dd>{{ d.economico|default:"—" }} / {{ d.ruta|default:"—" }}</dd></div>
     </dl></section>
-    <section class="card"><h2>Descripción del hecho</h2><p class="narr">{{ d.descripcion|default:"—" }}</p></section>
     <section class="card"><h2>Generalidades</h2><dl>
       <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
       <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>

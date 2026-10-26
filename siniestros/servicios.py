@@ -336,7 +336,6 @@ def enviar_correo(siniestro, request=None):
             "Se registró una liberación exprés desde oficina.", "",
             f"Folio: {siniestro.folio}",
             f"Fecha: {d.get('fecha', '')}",
-            f"Ubicación: {d.get('ubicacion', '')}",
             f"Ejecutivo(a): {d.get('ejecutivo', '')} (empleado {d.get('no_empleado', '')})",
             f"Económico / ruta: {d.get('economico', '')} / {d.get('ruta', '')}",
             f"¿Se activa seguro HDI?: {d.get('activa_seguro') or 'sin capturar'}",

@@ -43,18 +43,11 @@
     <section class="card"><h2>Datos generales</h2>
       <div class="g">
         <div><label class="req" for="fecha">Fecha</label><input type="date" id="fecha" name="fecha" value="{{ d.fecha|default:'' }}" required></div>
-        <div class="c2"><label for="ubicacion">Ubicación</label><input id="ubicacion" name="ubicacion" value="{{ d.ubicacion|default:'' }}" list="ubicaciones" placeholder="Patio Blvrd. de la Nación"></div>
-        <div></div>
         <div class="c2"><label class="req" for="ejecutivo">Ejecutivo(a)</label><input id="ejecutivo" name="ejecutivo" value="{{ d.ejecutivo|default:'' }}" required autocapitalize="characters"></div>
         <div><label for="no_empleado"># Empleado</label><input id="no_empleado" name="no_empleado" value="{{ d.no_empleado|default:'' }}" inputmode="numeric"></div>
         <div><label for="economico"># Económico</label><input id="economico" name="economico" value="{{ d.economico|default:'' }}" inputmode="numeric"></div>
         <div><label for="ruta">Ruta</label><input id="ruta" name="ruta" value="{{ d.ruta|default:'' }}"></div>
       </div>
-    </section>
-
-    <section class="card"><h2>Descripción del hecho</h2>
-      <label class="req" for="descripcion">¿Qué reporta el ejecutivo(a)?</label>
-      <textarea id="descripcion" name="descripcion" required placeholder="El operador reporta que…">{{ d.descripcion|default:'' }}</textarea>
     </section>
 
     <section class="card"><h2>Generalidades</h2>
@@ -142,7 +135,6 @@
     </div>
   </form>
 </div>
-<datalist id="ubicaciones"><option>Patio Blvrd. de la Nación</option></datalist>
 <datalist id="pruebas"><option>VIDEO DE CÁMARA A BORDO</option><option>FOTOGRAFÍAS</option><option>TESTIGOS</option><option>DICTAMEN PERICIAL</option></datalist>
 
 <script>

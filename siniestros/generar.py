@@ -249,8 +249,8 @@ def llenar_liberacion(datos, salida):
     doc = DocxTemplate(PLANTILLAS / "liberacion.docx")
     f = datos.get("fecha")
     ctx = {k: datos.get(k, "") or "" for k in (
-        "ubicacion", "ejecutivo", "economico", "ruta", "no_empleado",
-        "descripcion", "activa_seguro", "motivo_activacion", "causal", "pase_medico", "generalidades")}
+        "ejecutivo", "economico", "ruta", "no_empleado",
+        "activa_seguro", "motivo_activacion", "causal", "pase_medico", "generalidades")}
     ctx["fecha"] = f.strftime("%d.%m.%Y") if f else ""
     ctx["firma_ejecutivo"] = _img(doc, datos.get("firma_ejecutivo"), 45)
     doc.render(ctx)
