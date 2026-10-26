@@ -23,6 +23,12 @@
 .seg span{display:flex;align-items:center;justify-content:center;min-height:40px;border:1.5px solid var(--line);border-radius:10px;font-weight:650;color:var(--muted);background:#fff;cursor:pointer}
 .seg input:checked+span{background:var(--pri);border-color:var(--pri);color:#fff}
 .seg input:focus-visible+span{box-shadow:0 0 0 3px var(--pri-soft)}
+.chk{display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;background:#fff;font-weight:600;font-size:14px;color:var(--ink);cursor:pointer}
+.lib .chk input{width:20px;height:20px;min-height:0;padding:0;border:0;box-shadow:none;flex:none;accent-color:var(--pri);margin:0}
+.chk.on{border-color:var(--pri);background:var(--pri-soft);color:var(--pri)}
+.sub{border-left:3px solid var(--pri);padding:2px 0 2px 12px;margin:0 0 8px}
+.sub.rojo{border-left-color:var(--bad)}
+.sub[hidden]{display:none}
 .perito{font-size:14px;color:var(--muted);line-height:1.5}
 {% endblock %}
 {% block contenido %}
@@ -51,17 +57,61 @@
       <textarea id="descripcion" name="descripcion" required placeholder="El operador reporta que…">{{ d.descripcion|default:'' }}</textarea>
     </section>
 
-    <section class="card"><h2>Seguro</h2>
+    <section class="card"><h2>Generalidades</h2>
       <div class="g">
-        <div><span class="etq">¿Se activa seguro HDI?</span>
+        <div class="c2"><label for="causal">Causal</label><input id="causal" name="causal" value="{{ d.causal|default:'' }}"></div>
+        <div class="c2"><label for="colision">Tipo de colisión</label><input id="colision" name="colision" list="colisiones" value="{{ d.colision|default:'' }}"></div>
+        <div class="c2"><span class="etq">¿La unidad es responsable?</span>
+          <div class="seg">
+            <label><input type="radio" name="responsable" value="SI" {% if d.responsable == "SI" %}checked{% endif %}><span>Sí</span></label>
+            <label><input type="radio" name="responsable" value="NO" {% if d.responsable == "NO" %}checked{% endif %}><span>No</span></label>
+          </div>
+        </div>
+        <div class="c2"><label for="medio_prueba">Medio de prueba</label><input id="medio_prueba" name="medio_prueba" list="pruebas" value="{{ d.medio_prueba|default:'' }}"></div>
+        <div class="c4"><label for="nota">Nota</label><input id="nota" name="nota" value="{{ d.nota|default:'' }}"></div>
+        <div class="c2">
+          <label class="chk"><input type="checkbox" name="danos" {% if d.danos %}checked{% endif %}> Hay daños</label>
+          <div class="sub" data-si="danos">
+            <label class="chk"><input type="checkbox" name="danos_cristal" {% if d.danos_cristal %}checked{% endif %}> Cristal</label>
+            <label class="chk"><input type="checkbox" name="danos_carroceria" {% if d.danos_carroceria %}checked{% endif %}> Carrocería</label>
+            <label class="chk"><input type="checkbox" name="danos_retrovisor" {% if d.danos_retrovisor %}checked{% endif %}> Retrovisor</label>
+          </div>
+        </div>
+        <div class="c2">
+          <label class="chk"><input type="checkbox" name="alcohol" {% if d.alcohol %}checked{% endif %}> Algún conductor bajo influjo de alcohol o sustancias</label>
+          <div class="sub rojo" data-si="alcohol">
+            <label for="alcohol_autoridad">Autoridad que arriba</label>
+            <select id="alcohol_autoridad" name="alcohol_autoridad">
+              <option value="">Selecciona…</option>
+              <option value="AMEQ" {% if d.alcohol_autoridad == "AMEQ" %}selected{% endif %}>AMEQ</option>
+              <option value="SEGURIDAD PÚBLICA" {% if d.alcohol_autoridad == "SEGURIDAD PÚBLICA" %}selected{% endif %}>Seguridad Pública</option>
+            </select>
+            <span class="etq" style="margin-top:10px">Conductor</span>
+            <div class="seg">
+              <label><input type="radio" name="alcohol_conductor" value="A" {% if d.alcohol_conductor == "A" %}checked{% endif %}><span>Ejecutivo</span></label>
+              <label><input type="radio" name="alcohol_conductor" value="B" {% if d.alcohol_conductor == "B" %}checked{% endif %}><span>Otro conductor</span></label>
+            </div>
+            <label for="alcohol_grados" style="margin-top:10px">Grados de alcohol (alcoholímetro)</label>
+            <input id="alcohol_grados" type="number" name="alcohol_grados" inputmode="decimal" step="0.01" min="0" placeholder="0.00" value="{{ d.alcohol_grados|default:'' }}">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card"><h2>Seguros</h2>
+      <div class="g">
+        <div class="c2"><span class="etq">¿Se activa seguro HDI?</span>
           <div class="seg">
             <label><input type="radio" name="activa_seguro" value="SÍ" {% if d.activa_seguro == "SÍ" %}checked{% endif %}><span>Sí</span></label>
             <label><input type="radio" name="activa_seguro" value="NO" {% if d.activa_seguro == "NO" %}checked{% endif %}><span>No</span></label>
           </div>
         </div>
         <div><label for="motivo_activacion">Motivo de activación</label><input id="motivo_activacion" name="motivo_activacion" value="{{ d.motivo_activacion|default:'' }}"></div>
-        <div><label for="causal">Causal</label><input id="causal" name="causal" value="{{ d.causal|default:'' }}"></div>
         <div><label for="pase_medico">Pase médico</label><input id="pase_medico" name="pase_medico" value="{{ d.pase_medico|default:'' }}"></div>
+        <div><label>Seguro del ejecutivo</label><input value="HDI SEGUROS" disabled></div>
+        <div><label for="a_garantiza">Garantiza</label><input id="a_garantiza" name="a.garantiza" value="{{ d.a.garantiza|default:'' }}"></div>
+        <div><label for="b_seguro">Seguro del otro partícipe</label><input id="b_seguro" name="b.seguro" value="{{ d.b.seguro|default:'' }}"></div>
+        <div><label for="b_garantiza">Garantiza</label><input id="b_garantiza" name="b.garantiza" value="{{ d.b.garantiza|default:'' }}"></div>
       </div>
     </section>
 
@@ -87,6 +137,8 @@
   </form>
 </div>
 <datalist id="ubicaciones"><option>Patio Blvrd. de la Nación</option></datalist>
+<datalist id="colisiones"><option>ALCANCE</option><option>LATERAL</option><option>FRONTAL</option><option>CRUCERO</option><option>ATROPELLAMIENTO</option><option>OBJETO FIJO</option><option>SALIDA DE CAMINO</option></datalist>
+<datalist id="pruebas"><option>VIDEO DE CÁMARA A BORDO</option><option>FOTOGRAFÍAS</option><option>TESTIGOS</option><option>DICTAMEN PERICIAL</option></datalist>
 
 <script>
 (() => {
@@ -100,6 +152,13 @@
   const fin = () => { if (!ult) return; ult = null; campo.value = cv.toDataURL("image/png"); };
   cv.addEventListener("pointerup", fin); cv.addEventListener("pointercancel", fin);
   document.getElementById("btnBorrarFirma").onclick = () => { ctx.clearRect(0, 0, cv.width, cv.height); campo.value = ""; };
+  // casillas que despliegan opciones (daños, alcohol)
+  const pintar = () => {
+    document.querySelectorAll(".chk input").forEach(i => i.closest(".chk").classList.toggle("on", i.checked));
+    document.querySelectorAll("[data-si]").forEach(el => { el.hidden = !document.querySelector(`[name="${el.dataset.si}"]`).checked; });
+  };
+  document.querySelectorAll(".chk input").forEach(i => i.addEventListener("change", pintar));
+  pintar();
   document.getElementById("flib").addEventListener("submit", () => {
     const b = document.getElementById("btnGuardar"); b.disabled = true; b.textContent = "Guardando…";
   });

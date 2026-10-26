@@ -81,11 +81,25 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Económico / ruta</dt><dd>{{ d.economico|default:"—" }} / {{ d.ruta|default:"—" }}</dd></div>
     </dl></section>
     <section class="card"><h2>Descripción del hecho</h2><p class="narr">{{ d.descripcion|default:"—" }}</p></section>
-    <section class="card"><h2>Seguro</h2><dl>
+    <section class="card"><h2>Generalidades</h2><dl>
+      <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
+      <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>
+      <div><dt>Unidad responsable</dt><dd>{% if d.responsable == "SI" %}Sí{% elif d.responsable == "NO" %}No{% else %}—{% endif %}</dd></div>
+      <div><dt>Medio de prueba</dt><dd>{{ d.medio_prueba|default:"—" }}</dd></div>
+      {% if d.danos %}<div class="ancho"><dt>Daños</dt><dd>{{ danos|join:", "|default:"Sí (sin especificar)" }}</dd></div>{% endif %}
+      {% if d.alcohol %}
+      <div><dt>Alcohol / sustancias</dt><dd style="color:var(--bad)">Sí{% if d.alcohol_conductor == "A" %} — ejecutivo{% elif d.alcohol_conductor == "B" %} — otro conductor{% endif %}</dd></div>
+      <div><dt>Grados de alcohol</dt><dd>{{ d.alcohol_grados|default:"—" }}</dd></div>
+      <div><dt>Autoridad que arriba</dt><dd>{{ d.alcohol_autoridad|default:"—" }}</dd></div>
+      {% endif %}
+      {% if d.nota %}<div class="ancho"><dt>Nota</dt><dd>{{ d.nota }}</dd></div>{% endif %}
+    </dl></section>
+    <section class="card"><h2>Seguros</h2><dl>
       <div><dt>¿Se activa seguro HDI?</dt><dd>{{ d.activa_seguro|default:"—" }}</dd></div>
       <div><dt>Motivo de activación</dt><dd>{{ d.motivo_activacion|default:"—" }}</dd></div>
-      <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
       <div><dt>Pase médico</dt><dd>{{ d.pase_medico|default:"—" }}</dd></div>
+      <div><dt>HDI garantiza</dt><dd>{{ d.a.garantiza|default:"—" }}</dd></div>
+      <div><dt>Seguro otro partícipe / garantiza</dt><dd>{{ d.b.seguro|default:"—" }} / {{ d.b.garantiza|default:"—" }}</dd></div>
     </dl></section>
     {% else %}
     <section class="card"><h2>Datos generales</h2><dl>

@@ -275,10 +275,41 @@ def limpiar(j):
 
 
 # ------------------------------------------------------------------ correo
+def resumen_generalidades_lib(d):
+    """Renglón corto con las generalidades de una liberación exprés, para el Word (no tiene casillas)."""
+    partes = []
+    if d.get("colision"):
+        partes.append(f"Colisión: {d['colision']}")
+    if d.get("responsable") in ("SI", "NO"):
+        partes.append(f"Unidad responsable: {'Sí' if d['responsable'] == 'SI' else 'No'}")
+    if d.get("medio_prueba"):
+        partes.append(f"Medio de prueba: {d['medio_prueba']}")
+    danos = lista_danos(d)
+    if d.get("danos"):
+        partes.append(f"Daños: {', '.join(danos) or 'sí'}")
+    if d.get("alcohol"):
+        conductor = {"A": "ejecutivo", "B": "otro conductor"}.get(d.get("alcohol_conductor"), "conductor")
+        txt = f"Alcohol/sustancias: {conductor}"
+        if str(d.get("alcohol_grados") or "").strip():
+            txt += f", {d['alcohol_grados']} grados"
+        if d.get("alcohol_autoridad"):
+            txt += f", arribó {d['alcohol_autoridad']}"
+        partes.append(txt)
+    a, b = d.get("a") or {}, d.get("b") or {}
+    if a.get("garantiza"):
+        partes.append(f"HDI garantiza: {a['garantiza']}")
+    if b.get("seguro") or b.get("garantiza"):
+        partes.append(f"Seguro del otro partícipe: {b.get('seguro') or '—'}" + (f" (garantiza {b['garantiza']})" if b.get("garantiza") else ""))
+    if d.get("nota"):
+        partes.append(f"Nota: {d['nota']}")
+    return " · ".join(partes)
+
+
 def regenerar_liberacion(siniestro):
     datos = dict(siniestro.datos)
     datos["fecha"] = _fecha(datos.get("fecha")) or siniestro.creado.date()
     datos["firma_ejecutivo"] = ruta_imagen(siniestro, "firma_ejecutivo")
+    datos["generalidades"] = resumen_generalidades_lib(datos)
     for viejo in siniestro.carpeta.glob("*.*"):
         if viejo.suffix in (".docx", ".xlsx", ".pdf"):
             viejo.unlink()
