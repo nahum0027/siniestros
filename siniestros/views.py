@@ -334,7 +334,7 @@ def cambiar_contrasena(request):
 from django.core.exceptions import PermissionDenied
 from datetime import date as _date
 
-CAMPOS_LIB = ["fecha", "ubicacion", "ejecutivo", "no_empleado", "telefono", "economico", "placa", "ruta",
+CAMPOS_LIB = ["fecha", "ubicacion", "ejecutivo", "no_empleado", "economico", "ruta",
               "descripcion", "activa_seguro", "motivo_activacion", "causal", "pase_medico"]
 OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)", "descripcion": "Descripción del hecho"}
 
@@ -354,6 +354,8 @@ def liberacion(request, folio=None):
     errores = []
     if request.method == "POST":
         datos = {k: request.POST.get(k, "").strip() for k in CAMPOS_LIB}
+        if s:  # conserva datos viejos que ya no están en la pantalla (p. ej. teléfono y placa)
+            datos = {**{k: v for k, v in s.datos.items() if k not in CAMPOS_LIB}, **datos}
         firma = request.POST.get("firma_ejecutivo", "")
         errores = [n for k, n in OBLIGATORIOS_LIB.items() if not datos[k]]
         if not errores:

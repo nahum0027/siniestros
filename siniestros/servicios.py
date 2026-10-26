@@ -284,7 +284,7 @@ def enviar_correo(siniestro, request=None):
             f"Fecha: {d.get('fecha', '')}",
             f"Ubicación: {d.get('ubicacion', '')}",
             f"Ejecutivo(a): {d.get('ejecutivo', '')} (empleado {d.get('no_empleado', '')})",
-            f"Económico / placa / ruta: {d.get('economico', '')} / {d.get('placa', '')} / {d.get('ruta', '')}",
+            f"Económico / ruta: {d.get('economico', '')} / {d.get('ruta', '')}",
             f"Activa seguro: {d.get('activa_seguro', '')}",
             f"Capturó: {capturo}", "",
             f"Ver en la plataforma: {enlace}" if enlace else "",
