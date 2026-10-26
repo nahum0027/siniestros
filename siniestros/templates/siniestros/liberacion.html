@@ -107,10 +107,15 @@
         </div>
         <div><label for="motivo_activacion">Motivo de activación</label><input id="motivo_activacion" name="motivo_activacion" value="{{ d.motivo_activacion|default:'' }}"></div>
         <div><label for="pase_medico">Pase médico</label><input id="pase_medico" name="pase_medico" value="{{ d.pase_medico|default:'' }}"></div>
-        <div><label>Seguro del ejecutivo</label><input value="HDI SEGUROS" disabled></div>
-        <div><label for="a_garantiza">Garantiza</label><input id="a_garantiza" name="a.garantiza" value="{{ d.a.garantiza|default:'' }}"></div>
-        <div><label for="b_seguro">Seguro del otro partícipe</label><input id="b_seguro" name="b.seguro" value="{{ d.b.seguro|default:'' }}"></div>
-        <div><label for="b_garantiza">Garantiza</label><input id="b_garantiza" name="b.garantiza" value="{{ d.b.garantiza|default:'' }}"></div>
+        <div class="c4">
+          <label class="chk"><input type="checkbox" name="hay_participe" {% if d.hay_participe or d.b.seguro or d.b.garantiza %}checked{% endif %}> Hubo otro partícipe</label>
+          <div class="sub" data-si="hay_participe">
+            <div class="g">
+              <div class="c2"><label for="b_seguro">Seguro del otro partícipe</label><input id="b_seguro" name="b.seguro" value="{{ d.b.seguro|default:'' }}"></div>
+              <div class="c2"><label for="b_garantiza">Garantiza</label><input id="b_garantiza" name="b.garantiza" value="{{ d.b.garantiza|default:'' }}"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

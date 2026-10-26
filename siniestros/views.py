@@ -339,8 +339,8 @@ CAMPOS_LIB = ["fecha", "ejecutivo", "no_empleado", "economico", "ruta",
               "activa_seguro", "motivo_activacion", "causal", "pase_medico",
               # generalidades (igual que en el reporte de campo, sin anexos)
               "colision", "responsable", "medio_prueba", "nota",
-              "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "a", "b"]
-CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "alcohol"]
+              "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b"]
+CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "alcohol", "hay_participe"]
 OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)"}
 
 
@@ -359,9 +359,10 @@ def liberacion(request, folio=None):
     errores = []
     if request.method == "POST":
         datos = {k: request.POST.get(k, "").strip() for k in CAMPOS_LIB}
-        datos["a"] = {"garantiza": request.POST.get("a.garantiza", "").strip()}
-        datos["b"] = {k: request.POST.get(f"b.{k}", "").strip() for k in ("seguro", "garantiza")}
         datos.update({k: k in request.POST for k in CASILLAS_LIB})
+        # el otro partícipe es opcional: si no hubo, no se guardan sus datos de seguro
+        datos["b"] = {k: request.POST.get(f"b.{k}", "").strip() if datos["hay_participe"] else ""
+                      for k in ("seguro", "garantiza")}
         if s:  # conserva datos viejos que ya no están en la pantalla (p. ej. teléfono y placa)
             datos = {**{k: v for k, v in s.datos.items() if k not in CAMPOS_LIB + CASILLAS_LIB}, **datos}
         firma = request.POST.get("firma_ejecutivo", "")

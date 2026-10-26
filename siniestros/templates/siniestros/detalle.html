@@ -96,8 +96,8 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>¿Se activa seguro HDI?</dt><dd>{{ d.activa_seguro|default:"—" }}</dd></div>
       <div><dt>Motivo de activación</dt><dd>{{ d.motivo_activacion|default:"—" }}</dd></div>
       <div><dt>Pase médico</dt><dd>{{ d.pase_medico|default:"—" }}</dd></div>
-      <div><dt>HDI garantiza</dt><dd>{{ d.a.garantiza|default:"—" }}</dd></div>
-      <div><dt>Seguro otro partícipe / garantiza</dt><dd>{{ d.b.seguro|default:"—" }} / {{ d.b.garantiza|default:"—" }}</dd></div>
+      <div><dt>Otro partícipe</dt><dd>{% if d.hay_participe or d.b.seguro or d.b.garantiza %}Sí{% else %}No{% endif %}</dd></div>
+      {% if d.b.seguro or d.b.garantiza %}<div><dt>Seguro otro partícipe / garantiza</dt><dd>{{ d.b.seguro|default:"—" }} / {{ d.b.garantiza|default:"—" }}</dd></div>{% endif %}
     </dl></section>
     {% else %}
     <section class="card"><h2>Datos generales</h2><dl>
