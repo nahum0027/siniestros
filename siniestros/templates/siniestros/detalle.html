@@ -139,6 +139,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Grados de alcohol</dt><dd>{{ d.alcohol_grados|default:"—" }}</dd></div>
       <div><dt>Autoridad que arriba</dt><dd>{{ d.alcohol_autoridad|default:"—" }}</dd></div>
       {% endif %}
+      {% if d.danos %}<div class="ancho"><dt>Daños</dt><dd>{{ danos|join:", "|default:"Sí (sin especificar)" }}</dd></div>{% endif %}
       {% if d.nota %}<div class="ancho"><dt>Nota</dt><dd>{{ d.nota }}</dd></div>{% endif %}
       <div class="ancho"><dt>Redacción de hechos</dt><dd><p class="narr">{{ d.narrativa|default:"—" }}</p></dd></div>
     </dl></section>

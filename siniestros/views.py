@@ -171,6 +171,7 @@ def detalle(request, folio):
     imagenes = [(n, sv.etiqueta(n)) for n in sv.IMAGENES if sv.ruta_imagen(s, n)]
     return render(request, "siniestros/detalle.html", {
         "s": s, "d": s.datos, "imagenes": imagenes, "fotos": sv.fotos_para_mostrar(s),
+        "danos": [n.capitalize() for n in sv.lista_danos(s.datos)],
         "cambios": s.cambios.select_related("usuario"),
         "revisor": sv.puede_revisar(request.user),
         "puede_editar": sv.puede_editar(request.user, s),

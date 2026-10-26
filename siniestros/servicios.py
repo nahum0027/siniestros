@@ -27,6 +27,16 @@ FOTOS = {
     "otras": ("Otras fotos del siniestro", 10),
 }
 
+DANOS = (("danos_cristal", "CRISTAL"), ("danos_carroceria", "CARROCERÍA"), ("danos_retrovisor", "RETROVISOR"))
+
+
+def lista_danos(j):
+    """Daños marcados en Generalidades (solo si está activada la casilla 'Hay daños')."""
+    if not j.get("danos"):
+        return []
+    return [nombre for campo, nombre in DANOS if j.get(campo)]
+
+
 # Nombres legibles para el historial
 ETIQUETAS = {
     "fecha": "Fecha", "hora": "Hora", "ruta": "Ruta", "economico": "No. económico", "lugar": "Lugar del hecho",
@@ -43,6 +53,8 @@ ETIQUETAS = {
     "motivo_activacion": "Motivo de activación", "pase_medico": "Pase médico",
     "alcohol_autoridad": "Autoridad que arriba (alcohol)", "alcohol_conductor": "Conductor con alcohol",
     "alcohol_grados": "Grados de alcohol",
+    "danos": "Hay daños", "danos_cristal": "Daño: cristal", "danos_carroceria": "Daño: carrocería",
+    "danos_retrovisor": "Daño: retrovisor",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
     "firma_perito": "Firma del perito", "firma_conv_a": "Firma convenio (A)", "firma_conv_b": "Firma convenio (B)",
 }
@@ -205,6 +217,10 @@ def regenerar_documentos(siniestro):
             partes.append(f"arribó {j['alcohol_autoridad']}")
         nota_alcohol = ", ".join(partes)
         datos["nota"] = f"{j.get('nota', '').strip()} · {nota_alcohol}".strip(" ·")
+    # daños: tampoco hay casilla en el formato, van en la NOTA del hecho de tránsito
+    danos = lista_danos(j)
+    if danos:
+        datos["nota"] = f"{(datos.get('nota') or '').strip()} · DAÑOS: {', '.join(danos)}".strip(" ·")
     if j.get("b_no_aplica"):
         # sin segundo partícipe: se deja constancia en el formato y no hay convenio
         datos["b"] = {"nombre": "NO APLICA"}

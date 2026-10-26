@@ -61,6 +61,7 @@ select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='
 .mini button{position:absolute;top:4px;right:4px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(21,33,43,.75);color:#fff;font-size:18px;line-height:1;cursor:pointer}
 .mini.cargando::after{content:"…";position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:var(--muted)}
 .sub-bloque{border-left:3px solid var(--bad);padding:2px 0 2px 12px;margin:-2px 0 12px}
+.sub-bloque.na{border-left-color:var(--pri)}
 input:focus,select,textarea:focus{outline:none}
 input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--pri-soft)}
 input:disabled{background:#eef1f4;color:var(--muted);border-style:dashed}
@@ -297,6 +298,13 @@ footer .btn{flex:1;max-width:340px}
       </div>
       <div class="campo"><label>Medio de prueba</label><input type="text" name="medio_prueba" list="pruebas"></div>
       <div class="campo"><label>Nota</label><input type="text" name="nota"></div>
+      <label class="chk na"><input type="checkbox" name="danos"> Hay daños</label>
+      <div class="sub-bloque na" data-si="danos=true">
+        <span class="etq">Marca los daños</span>
+        <label class="chk na"><input type="checkbox" name="danos_cristal"> Cristal</label>
+        <label class="chk na"><input type="checkbox" name="danos_carroceria"> Carrocería</label>
+        <label class="chk na"><input type="checkbox" name="danos_retrovisor"> Retrovisor</label>
+      </div>
       <label class="chk"><input type="checkbox" name="alcohol"> Algún conductor bajo influjo de alcohol o sustancias</label>
       <div class="sub-bloque" data-si="alcohol=true">
         <div class="campo"><label for="alcohol_autoridad">Autoridad que arriba</label>
