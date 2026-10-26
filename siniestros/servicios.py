@@ -27,6 +27,12 @@ FOTOS = {
     "otras": ("Otras fotos del siniestro", 10),
 }
 
+# Tipos de colisión (catálogo fijo; se guarda en mayúsculas como en los formatos)
+COLISIONES = [(n.upper(), n) for n in (
+    "Alcance", "Choque crucero", "Choque de frente", "Choque lateral",
+    "Salida de la superficie de rodamiento", "Estrellamiento", "Volcadura", "Proyección",
+    "Atropello", "Caída de persona", "Choque con móvil de vehículo", "Choques diversos")]
+
 DANOS = (("danos_cristal", "CRISTAL"), ("danos_carroceria", "CARROCERÍA"), ("danos_retrovisor", "RETROVISOR"))
 
 

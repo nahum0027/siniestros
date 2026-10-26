@@ -404,6 +404,9 @@ def liberacion(request, folio=None):
         datos = dict(s.datos) if s else {"fecha": _date.today().isoformat()}
         firma = (sv.imagen_como_data_url(s, "firma_ejecutivo") if s else "") or ""
 
+    colision = datos.get("colision") or ""
     return render(request, "siniestros/liberacion.html", {
-        "s": s, "d": datos, "firma": firma, "errores": errores,
+        "s": s, "d": datos, "firma": firma, "errores": errores, "colisiones": sv.COLISIONES,
+        # un valor viejo que no está en la lista se conserva como opción extra
+        "colision_extra": colision if colision and colision not in dict(sv.COLISIONES) else "",
     })

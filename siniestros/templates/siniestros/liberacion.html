@@ -60,7 +60,13 @@
     <section class="card"><h2>Generalidades</h2>
       <div class="g">
         <div class="c2"><label for="causal">Causal</label><input id="causal" name="causal" value="{{ d.causal|default:'' }}"></div>
-        <div class="c2"><label for="colision">Tipo de colisión</label><input id="colision" name="colision" list="colisiones" value="{{ d.colision|default:'' }}"></div>
+        <div class="c2"><label for="colision">Tipo de colisión</label>
+          <select id="colision" name="colision">
+            <option value="">Selecciona…</option>
+            {% for valor, nombre in colisiones %}<option value="{{ valor }}" {% if d.colision == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+            {% if colision_extra %}<option value="{{ colision_extra }}" selected>{{ colision_extra }}</option>{% endif %}
+          </select>
+        </div>
         <div class="c2"><span class="etq">¿La unidad es responsable?</span>
           <div class="seg">
             <label><input type="radio" name="responsable" value="SI" {% if d.responsable == "SI" %}checked{% endif %}><span>Sí</span></label>
@@ -137,7 +143,6 @@
   </form>
 </div>
 <datalist id="ubicaciones"><option>Patio Blvrd. de la Nación</option></datalist>
-<datalist id="colisiones"><option>ALCANCE</option><option>LATERAL</option><option>FRONTAL</option><option>CRUCERO</option><option>ATROPELLAMIENTO</option><option>OBJETO FIJO</option><option>SALIDA DE CAMINO</option></datalist>
 <datalist id="pruebas"><option>VIDEO DE CÁMARA A BORDO</option><option>FOTOGRAFÍAS</option><option>TESTIGOS</option><option>DICTAMEN PERICIAL</option></datalist>
 
 <script>

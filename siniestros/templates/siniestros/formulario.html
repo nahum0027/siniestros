@@ -292,7 +292,7 @@ footer .btn{flex:1;max-width:340px}
   <section class="paso" data-titulo="Generalidades">
     <fieldset><legend>Del hecho</legend>
       <div class="campo"><label>Causal</label><input type="text" name="causal"></div>
-      <div class="campo"><label>Tipo de colisión</label><input type="text" name="colision" list="colisiones"></div>
+      <div class="campo"><label for="colision">Tipo de colisión</label><select id="colision" name="colision"><option value="">Selecciona…</option><option value="ALCANCE">Alcance</option><option value="CHOQUE CRUCERO">Choque crucero</option><option value="CHOQUE DE FRENTE">Choque de frente</option><option value="CHOQUE LATERAL">Choque lateral</option><option value="SALIDA DE LA SUPERFICIE DE RODAMIENTO">Salida de la superficie de rodamiento</option><option value="ESTRELLAMIENTO">Estrellamiento</option><option value="VOLCADURA">Volcadura</option><option value="PROYECCIÓN">Proyección</option><option value="ATROPELLO">Atropello</option><option value="CAÍDA DE PERSONA">Caída de persona</option><option value="CHOQUE CON MÓVIL DE VEHÍCULO">Choque con móvil de vehículo</option><option value="CHOQUES DIVERSOS">Choques diversos</option></select></div>
       <div class="campo"><span class="etq">¿La unidad es responsable?</span>
         <div class="seg"><label><input type="radio" name="responsable" value="SI"><span>Sí</span></label><label><input type="radio" name="responsable" value="NO"><span>No</span></label></div>
       </div>
@@ -448,7 +448,6 @@ footer .btn{flex:1;max-width:340px}
 <datalist id="ids"><option>INE</option><option>LICENCIA DE CONDUCIR</option><option>PASAPORTE</option></datalist>
 <datalist id="trayectorias"><option>DE NORTE A SUR</option><option>DE SUR A NORTE</option><option>DE ORIENTE A PONIENTE</option><option>DE PONIENTE A ORIENTE</option><option>ESTACIONADO</option></datalist>
 <datalist id="servicios"><option>PARTICULAR</option><option>PÚBLICO</option><option>TAXI</option><option>PLATAFORMA</option><option>CARGA</option><option>MOTOCICLETA</option></datalist>
-<datalist id="colisiones"><option>ALCANCE</option><option>LATERAL</option><option>FRONTAL</option><option>CRUCERO</option><option>ATROPELLAMIENTO</option><option>OBJETO FIJO</option><option>SALIDA DE CAMINO</option></datalist>
 <datalist id="pruebas"><option>VIDEO DE CÁMARA A BORDO</option><option>FOTOGRAFÍAS</option><option>TESTIGOS</option><option>DICTAMEN PERICIAL</option></datalist>
 
 <script>
@@ -510,7 +509,11 @@ function enlazar(raiz = document) {
     const v = getP(S, el.name);
     if (el.type === "radio") el.checked = v === el.value;
     else if (el.type === "checkbox") el.checked = !!v;
-    else if (v != null) el.value = v;
+    else if (v != null) {
+      // si un reporte viejo trae un valor que ya no está en la lista, se agrega para no perderlo
+      if (el.tagName === "SELECT" && v && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v));
+      el.value = v;
+    }
     el.addEventListener(el.type === "radio" || el.type === "checkbox" ? "change" : "input", () => {
       const val = el.type === "checkbox" ? el.checked : el.value;
       setP(S, el.name, val);
