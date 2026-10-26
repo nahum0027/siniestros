@@ -16,6 +16,13 @@
 .firma-caja .linea{position:absolute;left:8%;right:8%;bottom:24%;border-bottom:1px solid #c5d0d8;pointer-events:none}
 .firma-caja .hint{position:absolute;left:10px;top:8px;font-size:12px;color:#9fb0bd;pointer-events:none}
 .acciones{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px}
+.etq{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+.seg{display:flex;gap:6px}
+.seg label{flex:1 1 0;position:relative;margin:0}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:flex;align-items:center;justify-content:center;min-height:40px;border:1.5px solid var(--line);border-radius:10px;font-weight:650;color:var(--muted);background:#fff;cursor:pointer}
+.seg input:checked+span{background:var(--pri);border-color:var(--pri);color:#fff}
+.seg input:focus-visible+span{box-shadow:0 0 0 3px var(--pri-soft)}
 .perito{font-size:14px;color:var(--muted);line-height:1.5}
 {% endblock %}
 {% block contenido %}
@@ -46,12 +53,11 @@
 
     <section class="card"><h2>Seguro</h2>
       <div class="g">
-        <div><label for="activa_seguro">Activa seguro</label>
-          <select id="activa_seguro" name="activa_seguro">
-            <option value="">—</option>
-            <option value="SÍ" {% if d.activa_seguro == "SÍ" %}selected{% endif %}>Sí</option>
-            <option value="NO" {% if d.activa_seguro == "NO" %}selected{% endif %}>No</option>
-          </select>
+        <div><span class="etq">¿Se activa seguro HDI?</span>
+          <div class="seg">
+            <label><input type="radio" name="activa_seguro" value="SÍ" {% if d.activa_seguro == "SÍ" %}checked{% endif %}><span>Sí</span></label>
+            <label><input type="radio" name="activa_seguro" value="NO" {% if d.activa_seguro == "NO" %}checked{% endif %}><span>No</span></label>
+          </div>
         </div>
         <div><label for="motivo_activacion">Motivo de activación</label><input id="motivo_activacion" name="motivo_activacion" value="{{ d.motivo_activacion|default:'' }}"></div>
         <div><label for="causal">Causal</label><input id="causal" name="causal" value="{{ d.causal|default:'' }}"></div>

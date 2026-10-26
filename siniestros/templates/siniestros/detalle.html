@@ -82,7 +82,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
     </dl></section>
     <section class="card"><h2>Descripción del hecho</h2><p class="narr">{{ d.descripcion|default:"—" }}</p></section>
     <section class="card"><h2>Seguro</h2><dl>
-      <div><dt>Activa seguro</dt><dd>{{ d.activa_seguro|default:"—" }}</dd></div>
+      <div><dt>¿Se activa seguro HDI?</dt><dd>{{ d.activa_seguro|default:"—" }}</dd></div>
       <div><dt>Motivo de activación</dt><dd>{{ d.motivo_activacion|default:"—" }}</dd></div>
       <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
       <div><dt>Pase médico</dt><dd>{{ d.pase_medico|default:"—" }}</dd></div>
@@ -131,6 +131,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>
       <div><dt>Unidad responsable</dt><dd>{{ d.responsable|default:"—" }}</dd></div>
       <div><dt>Medio de prueba</dt><dd>{{ d.medio_prueba|default:"—" }}</dd></div>
+      <div><dt>¿Se activa seguro HDI?</dt><dd>{% if d.seguro_hdi == "SI" %}Sí{% elif d.seguro_hdi == "NO" %}No{% else %}—{% endif %}</dd></div>
       <div><dt>Seguro A / garantiza</dt><dd>HDI SEGUROS / {{ d.a.garantiza|default:"—" }}</dd></div>
       {% if not d.b_no_aplica %}<div><dt>Seguro B / garantiza</dt><dd>{{ d.b.seguro|default:"—" }} / {{ d.b.garantiza|default:"—" }}</dd></div>{% endif %}
       <div><dt>Convenio</dt><dd>{% if d.aplica_convenio %}Sí — {{ d.forma_reparacion }}{% else %}No{% endif %}</dd></div>
