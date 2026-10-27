@@ -365,7 +365,6 @@ def liberacion(request, folio=None):
                       for k in ("seguro", "garantiza")}
         if s:  # conserva datos viejos que ya no están en la pantalla (p. ej. teléfono y placa)
             datos = {**{k: v for k, v in s.datos.items() if k not in CAMPOS_LIB + CASILLAS_LIB}, **datos}
-        firma = request.POST.get("firma_ejecutivo", "")
         try:  # lista de fotos: dataURL (nueva) o {"ref": nombre} (ya guardada)
             fotos_lib = {"fotos": {"otras": json.loads(request.POST.get("fotos_json") or "[]")}}
         except ValueError:
@@ -380,7 +379,6 @@ def liberacion(request, folio=None):
                                   id_cliente=id_cliente, datos=datos, capturado_por=request.user)
                     s.copiar_resumen()
                     s.save()
-                    sv.guardar_imagenes(s, {"firma_ejecutivo": firma})
                     s.datos["fotos"], _ = sv.guardar_fotos(s, fotos_lib)
                     s.save(update_fields=["datos"])
                     sv.regenerar_documentos(s)
@@ -389,8 +387,6 @@ def liberacion(request, folio=None):
                     nuevo = True
                 else:
                     cambios = sv.diferencias(s.datos, datos)
-                    imgs = sv.guardar_imagenes(s, {"firma_ejecutivo": firma})
-                    cambios += [{"campo": n, "etiqueta": sv.etiqueta(n), "antes": "(imagen)", "despues": "(imagen nueva)"} for n in imgs]
                     datos["fotos"], cambios_fotos = sv.guardar_fotos(s, fotos_lib)
                     cambios += [{**c, "etiqueta": "Fotos del hecho"} for c in cambios_fotos]
                     if not cambios:
@@ -411,12 +407,11 @@ def liberacion(request, folio=None):
             return redirect(f"/reportes/{s.folio}/?guardado={len(cambios)}")
     else:
         datos = dict(s.datos) if s else {"fecha": _date.today().isoformat()}
-        firma = (sv.imagen_como_data_url(s, "firma_ejecutivo") if s else "") or ""
 
     colision = datos.get("colision") or ""
     fotos_previas = ((s.datos.get("fotos") or {}).get("otras") or []) if s else []
     return render(request, "siniestros/liberacion.html", {
-        "s": s, "d": datos, "firma": firma, "errores": errores, "colisiones": sv.COLISIONES,
+        "s": s, "d": datos, "errores": errores, "colisiones": sv.COLISIONES,
         "fotos_previas": fotos_previas, "max_fotos": sv.FOTOS["otras"][1],
         # un valor viejo que no está en la lista se conserva como opción extra
         "colision_extra": colision if colision and colision not in dict(sv.COLISIONES) else "",
