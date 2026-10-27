@@ -33,6 +33,9 @@ COLISIONES = [(n.upper(), n) for n in (
     "Salida de la superficie de rodamiento", "Estrellamiento", "Volcadura", "Proyección",
     "Atropello", "Caída de persona", "Choque con móvil de vehículo", "Choques diversos")]
 
+# Liberación exprés: a dónde se envía la unidad liberada
+DESTINOS_LIB = [("MANTENIMIENTO", "Mantenimiento"), ("VÍA LÁCTEA", "Vía Láctea"), ("PATIO LA NACIÓN", "Patio La Nación")]
+
 DANOS = (("danos_cristal", "CRISTAL"), ("danos_carroceria", "CARROCERÍA"), ("danos_retrovisor", "RETROVISOR"))
 
 
@@ -59,7 +62,7 @@ ETIQUETAS = {
     "motivo_activacion": "Motivo de activación", "pase_medico": "Pase médico",
     "alcohol_autoridad": "Autoridad que arriba (alcohol)", "alcohol_conductor": "Conductor con alcohol",
     "alcohol_grados": "Grados de alcohol",
-    "seguro_hdi": "¿Se activa seguro HDI?", "hay_participe": "Hubo otro partícipe",
+    "seguro_hdi": "¿Se activa seguro HDI?", "enviar_a": "Liberada, enviar a", "hay_participe": "Hubo otro partícipe",
     "danos": "Hay daños", "danos_cristal": "Daño: cristal", "danos_carroceria": "Daño: carrocería",
     "danos_retrovisor": "Daño: retrovisor",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
@@ -286,6 +289,8 @@ def limpiar(j):
 def resumen_generalidades_lib(d):
     """Renglón corto con las generalidades de una liberación exprés, para el Word (no tiene casillas)."""
     partes = []
+    if d.get("enviar_a"):
+        partes.append(f"Liberada, enviar a: {d['enviar_a']}")
     if d.get("colision"):
         partes.append(f"Colisión: {d['colision']}")
     if d.get("responsable") in ("SI", "NO"):
@@ -340,6 +345,7 @@ def enviar_correo(siniestro, request=None):
             f"Fecha: {d.get('fecha', '')}",
             f"Ejecutivo(a): {d.get('ejecutivo', '')} (empleado {d.get('no_empleado', '')})",
             f"Económico / ruta: {d.get('economico', '')} / {d.get('ruta', '')}",
+            f"Liberada, enviar a: {d.get('enviar_a') or 'sin capturar'}",
             f"¿Se activa seguro HDI?: {d.get('activa_seguro') or 'sin capturar'}",
             f"Capturó: {capturo}", "",
             f"Ver en la plataforma: {enlace}" if enlace else "",

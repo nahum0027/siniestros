@@ -80,6 +80,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Económico / ruta</dt><dd>{{ d.economico|default:"—" }} / {{ d.ruta|default:"—" }}</dd></div>
     </dl></section>
     <section class="card"><h2>Generalidades</h2><dl>
+      <div class="ancho"><dt>Liberada, enviar a</dt><dd>{{ d.enviar_a|default:"—" }}</dd></div>
       <div><dt>Causal</dt><dd>{{ d.causal|default:"—" }}</dd></div>
       <div><dt>Colisión</dt><dd>{{ d.colision|default:"—" }}</dd></div>
       <div><dt>Unidad responsable</dt><dd>{% if d.responsable == "SI" %}Sí{% elif d.responsable == "NO" %}No{% else %}—{% endif %}</dd></div>

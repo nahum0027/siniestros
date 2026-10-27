@@ -18,8 +18,10 @@
 .seg input{position:absolute;opacity:0;width:1px;height:1px}
 .seg span{display:flex;align-items:center;justify-content:center;min-height:40px;border:1.5px solid var(--line);border-radius:10px;font-weight:650;color:var(--muted);background:#fff;cursor:pointer}
 .seg input:checked+span{background:var(--pri);border-color:var(--pri);color:#fff}
+.seg3 span{min-height:48px;font-size:15px;padding:6px 10px;text-align:center}
+@media (max-width:520px){.seg3{flex-direction:column}}
 .seg input:focus-visible+span{box-shadow:0 0 0 3px var(--pri-soft)}
-.chk{display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;background:#fff;font-weight:600;font-size:14px;color:var(--ink);cursor:pointer}
+.lib .chk{display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;background:#fff;font-weight:600;font-size:14px;color:var(--ink);cursor:pointer}
 .lib .chk input{width:20px;height:20px;min-height:0;padding:0;border:0;box-shadow:none;flex:none;accent-color:var(--pri);margin:0}
 .chk.on{border-color:var(--pri);background:var(--pri-soft);color:var(--pri)}
 .sub{border-left:3px solid var(--pri);padding:2px 0 2px 12px;margin:0 0 8px}
@@ -53,6 +55,12 @@
         <div><label for="no_empleado"># Empleado</label><input id="no_empleado" name="no_empleado" value="{{ d.no_empleado|default:'' }}" inputmode="numeric"></div>
         <div><label for="economico"># Económico</label><input id="economico" name="economico" value="{{ d.economico|default:'' }}" inputmode="numeric"></div>
         <div><label for="ruta">Ruta</label><input id="ruta" name="ruta" value="{{ d.ruta|default:'' }}"></div>
+      </div>
+    </section>
+
+    <section class="card"><h2>Liberada, enviar a</h2>
+      <div class="seg seg3">
+        {% for valor, nombre in destinos %}<label><input type="radio" name="enviar_a" value="{{ valor }}" {% if d.enviar_a == valor %}checked{% endif %}><span>{{ nombre }}</span></label>{% endfor %}
       </div>
     </section>
 

@@ -338,7 +338,7 @@ from datetime import date as _date
 CAMPOS_LIB = ["fecha", "ejecutivo", "no_empleado", "economico", "ruta",
               "activa_seguro", "motivo_activacion", "causal", "pase_medico",
               # generalidades (igual que en el reporte de campo, sin anexos)
-              "colision", "responsable", "medio_prueba", "nota",
+              "enviar_a", "colision", "responsable", "medio_prueba", "nota",
               "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b"]
 CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "alcohol", "hay_participe"]
 OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)"}
@@ -411,7 +411,7 @@ def liberacion(request, folio=None):
     colision = datos.get("colision") or ""
     fotos_previas = ((s.datos.get("fotos") or {}).get("otras") or []) if s else []
     return render(request, "siniestros/liberacion.html", {
-        "s": s, "d": datos, "errores": errores, "colisiones": sv.COLISIONES,
+        "s": s, "d": datos, "errores": errores, "colisiones": sv.COLISIONES, "destinos": sv.DESTINOS_LIB,
         "fotos_previas": fotos_previas, "max_fotos": sv.FOTOS["otras"][1],
         # un valor viejo que no está en la lista se conserva como opción extra
         "colision_extra": colision if colision and colision not in dict(sv.COLISIONES) else "",
