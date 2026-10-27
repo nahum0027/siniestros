@@ -24,7 +24,7 @@ FOTOS = {
     "tio": ("TIO (tarjetón)", 2),
     "licencia_a": ("Licencia del ejecutivo (A)", 2),
     "licencia_b": ("Licencia del partícipe B", 2),
-    "otras": ("Otras fotos del siniestro", 10),
+    "otras": ("Fotos de daños del bus", 10),
 }
 
 # Tipos de colisión (catálogo fijo; se guarda en mayúsculas como en los formatos)
