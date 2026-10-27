@@ -75,6 +75,7 @@ CAMPOS_PARTICIPE = {
     "garantia": "Garantía", "placas": "Placas", "modelo": "Modelo", "marca": "Marca", "garantiza": "Garantiza",
     "trayectoria": "Trayectoria", "entidad": "Entidad", "tipo_servicio": "Tipo de servicio", "seguro": "Seguro",
     "lesionado": "Lesionado", "fallecido": "Fallecido", "remolcado_por": "Remolcado por",
+    "liberada": "Unidad liberada", "liberada_destino": "Unidad liberada · destino",
     "trasladado_a": "Trasladado a", "disposicion": "A disposición de",
 }
 CAMPOS_LESIONADO = {"nombre": "Nombre", "direccion": "Dirección", "telefono": "Teléfono",
@@ -229,6 +230,11 @@ def regenerar_documentos(siniestro):
             partes.append(f"arribó {j['alcohol_autoridad']}")
         nota_alcohol = ", ".join(partes)
         datos["nota"] = f"{j.get('nota', '').strip()} · {nota_alcohol}".strip(" ·")
+    # unidad liberada: tampoco hay casilla, va en la NOTA
+    a_j = j.get("a") or {}
+    if a_j.get("liberada"):
+        txt = f"UNIDAD LIBERADA: {a_j.get('liberada_destino') or 'SIN DESTINO'}"
+        datos["nota"] = f"{(datos.get('nota') or '').strip()} · {txt}".strip(" ·")
     # daños: tampoco hay casilla en el formato, van en la NOTA del hecho de tránsito
     danos = lista_danos(j)
     if danos:

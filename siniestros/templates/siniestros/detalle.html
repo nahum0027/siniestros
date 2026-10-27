@@ -119,6 +119,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Placas / modelo</dt><dd>{{ d.a.placas|default:"—" }} / {{ d.a.modelo|default:"—" }}</dd></div>
       <div><dt>Trayectoria</dt><dd>{{ d.a.trayectoria|default:"—" }}</dd></div>
       <div><dt>Estado</dt><dd>{% if d.a.fallecido %}Fallecido{% elif d.a.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
+      {% if d.a.liberada %}<div class="ancho"><dt>Unidad liberada</dt><dd>{{ d.a.liberada_destino|default:"Sí (sin destino)" }}</dd></div>{% endif %}
     </dl></section>
 
     <section class="card"><h2>Partícipe B</h2>

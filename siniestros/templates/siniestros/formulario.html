@@ -62,6 +62,8 @@ select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='
 .mini.cargando::after{content:"…";position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:var(--muted)}
 .sub-bloque{border-left:3px solid var(--bad);padding:2px 0 2px 12px;margin:-2px 0 12px}
 .sub-bloque.na{border-left-color:var(--pri)}
+.seg.seg-col{flex-direction:column}
+.seg.seg-col span{justify-content:flex-start;padding:6px 14px}
 input:focus,select,textarea:focus{outline:none}
 input:focus,textarea:focus{border-color:var(--pri-2);box-shadow:0 0 0 3px var(--pri-soft)}
 input:disabled{background:#eef1f4;color:var(--muted);border-style:dashed}
@@ -221,6 +223,15 @@ footer .btn{flex:1;max-width:340px}
     <fieldset><legend>Después del hecho</legend>
       <label class="chk"><input type="checkbox" name="a.lesionado"> Lesionado</label>
       <label class="chk"><input type="checkbox" name="a.fallecido"> Fallecido</label>
+      <label class="chk na"><input type="checkbox" name="a.liberada"> Unidad liberada</label>
+      <div class="sub-bloque na" data-si="a.liberada=true">
+        <div class="seg seg-col">
+          <label><input type="radio" name="a.liberada_destino" value="CONTINUAR EN RUTA"><span>Continuar en ruta</span></label>
+          <label><input type="radio" name="a.liberada_destino" value="AVANCE A MANTENIMIENTO"><span>Avance a mantenimiento</span></label>
+          <label><input type="radio" name="a.liberada_destino" value="AVANCE A PATIO LA NACIÓN"><span>Avance a patio La Nación</span></label>
+          <label><input type="radio" name="a.liberada_destino" value="AVANCE A PATIO VÍA LÁCTEA"><span>Avance a patio Vía Láctea</span></label>
+        </div>
+      </div>
       <div class="campo"><label>Vehículo remolcado por</label><input type="text" name="a.remolcado_por"></div>
       <div class="campo"><label>Vehículo trasladado a</label><input type="text" name="a.trasladado_a"></div>
       <div class="campo"><label>A disposición de</label><input type="text" name="a.disposicion"></div>
