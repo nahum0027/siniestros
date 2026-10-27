@@ -340,7 +340,7 @@ CAMPOS_LIB = ["fecha", "ejecutivo", "no_empleado", "economico", "ruta",
               # generalidades (igual que en el reporte de campo, sin anexos)
               "enviar_a", "colision", "responsable", "medio_prueba", "nota",
               "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b"]
-CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "alcohol", "hay_participe"]
+CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "danos_rack", "alcohol", "hay_participe"]
 OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)"}
 
 

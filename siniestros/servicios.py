@@ -36,7 +36,7 @@ COLISIONES = [(n.upper(), n) for n in (
 # Liberación exprés: a dónde se envía la unidad liberada
 DESTINOS_LIB = [("MANTENIMIENTO", "Mantenimiento"), ("VÍA LÁCTEA", "Vía Láctea"), ("PATIO LA NACIÓN", "Patio La Nación")]
 
-DANOS = (("danos_cristal", "CRISTAL"), ("danos_carroceria", "CARROCERÍA"), ("danos_retrovisor", "RETROVISOR"))
+DANOS = (("danos_cristal", "CRISTAL"), ("danos_carroceria", "CARROCERÍA"), ("danos_retrovisor", "RETROVISOR"), ("danos_rack", "RACK"))
 
 
 def lista_danos(j):
@@ -64,7 +64,7 @@ ETIQUETAS = {
     "alcohol_grados": "Grados de alcohol",
     "seguro_hdi": "¿Se activa seguro HDI?", "enviar_a": "Liberada, enviar a", "hay_participe": "Hubo otro partícipe",
     "danos": "Hay daños", "danos_cristal": "Daño: cristal", "danos_carroceria": "Daño: carrocería",
-    "danos_retrovisor": "Daño: retrovisor",
+    "danos_retrovisor": "Daño: retrovisor", "danos_rack": "Daño: rack",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
     "firma_perito": "Firma del perito", "firma_conv_a": "Firma convenio (A)", "firma_conv_b": "Firma convenio (B)",
 }
