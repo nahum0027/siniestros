@@ -29,6 +29,16 @@
 .sub{border-left:3px solid var(--pri);padding:2px 0 2px 12px;margin:0 0 8px}
 .sub.rojo{border-left-color:var(--bad)}
 .sub[hidden]{display:none}
+.ayuda-f{margin:0 0 10px;color:var(--muted);font-size:13px}
+.miniaturas{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:0 0 12px}
+.miniaturas:empty{display:none}
+.mini{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#f2f4f6}
+.mini img{width:100%;height:100%;object-fit:cover;display:block}
+.mini button{position:absolute;top:5px;right:5px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(21,33,43,.75);color:#fff;font-size:18px;line-height:1;cursor:pointer}
+.botones-f{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.botones-f label.btn{cursor:pointer}
+.botones-f.lleno label.btn{display:none}
+.tenue-f{color:var(--muted);font-size:13px}
 .perito{font-size:14px;color:var(--muted);line-height:1.5}
 {% endblock %}
 {% block contenido %}
@@ -39,7 +49,7 @@
 
   {% if errores %}<div class="msg error">Falta capturar: {{ errores|join:", " }}.</div>{% endif %}
 
-  <form method="post" id="flib" autocomplete="off">{% csrf_token %}
+  <form method="post" id="flib" autocomplete="off" enctype="multipart/form-data">{% csrf_token %}
     <section class="card"><h2>Datos generales</h2>
       <div class="g">
         <div><label class="req" for="fecha">Fecha</label><input type="date" id="fecha" name="fecha" value="{{ d.fecha|default:'' }}" required></div>
@@ -119,6 +129,18 @@
       </div>
     </section>
 
+    <section class="card"><h2>Fotos</h2>
+      <p class="ayuda-f">Del hecho, de los daños o de documentos. Hasta {{ max_fotos }} fotos; se reducen antes de guardarse.</p>
+      <div class="miniaturas" id="miniaturas"></div>
+      <div class="botones-f" id="botonesFotos">
+        <label class="btn sec"><input type="file" accept="image/*" capture="environment" id="fotoCamara" hidden>📷 Tomar foto</label>
+        <label class="btn sec"><input type="file" accept="image/*" multiple id="fotoArchivo" hidden>🖼 Subir fotos</label>
+        <span class="tenue-f" id="estadoFotos"></span>
+      </div>
+      <input type="hidden" name="fotos_json" id="fotos_json">
+      {{ fotos_previas|json_script:"fotosPrevias" }}
+    </section>
+
     <section class="card"><h2>Firmas</h2>
       <div class="g">
         <div class="c2">
@@ -161,7 +183,49 @@
   };
   document.querySelectorAll(".chk input").forEach(i => i.addEventListener("change", pintar));
   pintar();
+  // ---------------- fotos: se reducen en el navegador (≈1600 px, JPEG) antes de enviarse
+  const MAX = {{ max_fotos }}, FOLIO = "{{ s.folio|default:'' }}";
+  const fotos = JSON.parse(document.getElementById("fotosPrevias").textContent).map(n => ({ ref: n }));
+  const caja = document.getElementById("miniaturas"), estado = document.getElementById("estadoFotos");
+  const srcDe = f => f.ref ? `/reportes/${encodeURIComponent(FOLIO)}/foto/${encodeURIComponent(f.ref)}` : f.url;
+  const pintarFotos = () => {
+    caja.innerHTML = "";
+    fotos.forEach((f, i) => {
+      const d = document.createElement("div"); d.className = "mini";
+      d.innerHTML = `<img alt="Foto ${i + 1}"><button type="button" aria-label="Quitar foto">×</button>`;
+      d.querySelector("img").src = srcDe(f);
+      d.querySelector("button").onclick = () => { fotos.splice(i, 1); pintarFotos(); };
+      caja.appendChild(d);
+    });
+    document.getElementById("botonesFotos").classList.toggle("lleno", fotos.length >= MAX);
+    estado.textContent = fotos.length ? `${fotos.length} de ${MAX}` : "";
+  };
+  const reducir = file => new Promise((ok, mal) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const s = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight));
+      const cv = document.createElement("canvas"); cv.width = Math.round(im.naturalWidth * s); cv.height = Math.round(im.naturalHeight * s);
+      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+      const dato = cv.toDataURL("image/jpeg", 0.75); cv.width = cv.height = 0; URL.revokeObjectURL(url); ok(dato);
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No se pudo leer la imagen")); };
+    im.src = url;
+  });
+  const agregar = async ev => {
+    const archivos = [...ev.target.files]; ev.target.value = "";
+    for (const f of archivos) {
+      if (fotos.length >= MAX) { estado.textContent = `Máximo ${MAX} fotos.`; break; }
+      estado.textContent = "Procesando foto…";
+      try { fotos.push({ url: await reducir(f) }); } catch (e) { estado.textContent = "No se pudo leer una de las imágenes."; await new Promise(r => setTimeout(r, 1500)); }
+    }
+    pintarFotos();
+  };
+  document.getElementById("fotoCamara").addEventListener("change", agregar);
+  document.getElementById("fotoArchivo").addEventListener("change", agregar);
+  pintarFotos();
+
   document.getElementById("flib").addEventListener("submit", () => {
+    document.getElementById("fotos_json").value = JSON.stringify(fotos.map(f => f.ref ? { ref: f.ref } : f.url));
     const b = document.getElementById("btnGuardar"); b.disabled = true; b.textContent = "Guardando…";
   });
 })();

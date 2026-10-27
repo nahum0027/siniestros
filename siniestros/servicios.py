@@ -188,6 +188,8 @@ def guardar_fotos(siniestro, j):
 def fotos_para_mostrar(siniestro):
     """[(etiqueta, [nombres])] en el orden de FOTOS, solo los grupos con fotos."""
     fotos = (siniestro.datos or {}).get("fotos") or {}
+    if siniestro.es_liberacion:  # la liberación solo tiene un grupo de fotos
+        return [("Fotos del hecho", fotos["otras"])] if fotos.get("otras") else []
     return [(etq, fotos[c]) for c, (etq, _) in FOTOS.items() if fotos.get(c)]
 
 
