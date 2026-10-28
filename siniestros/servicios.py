@@ -6,6 +6,7 @@ import base64
 import hashlib
 import logging
 from datetime import datetime
+from pathlib import Path
 
 from django.conf import settings
 from django.core.mail import EmailMessage
@@ -405,8 +406,61 @@ def puede_revisar(user):
     return user.has_perm("siniestros.revisar_siniestro")
 
 
+def ve_todo(user):
+    """Revisores, administradores y el rol de Consulta ven todos los reportes."""
+    return puede_revisar(user) or user.has_perm("siniestros.consultar_siniestro")
+
+
 def puede_ver(user, siniestro):
-    return puede_revisar(user) or siniestro.capturado_por_id == user.id
+    return ve_todo(user) or siniestro.capturado_por_id == user.id
+
+
+def puede_descargar(user, siniestro):
+    return user.has_perm("siniestros.descargar_formatos") and puede_ver(user, siniestro)
+
+
+# ------------------------------------------------------------------ PDF
+def _soffice():
+    import shutil
+    for nombre in ("soffice", "libreoffice"):
+        if shutil.which(nombre):
+            return shutil.which(nombre)
+    for p in (r"C:\Program Files\LibreOffice\program\soffice.exe",
+              r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+              "/Applications/LibreOffice.app/Contents/MacOS/soffice"):
+        if Path(p).exists():
+            return p
+    return None
+
+
+def pdf_de(siniestro, archivo):
+    """Convierte un formato (docx/xlsx) a PDF con LibreOffice. Se guarda en carpeta/pdf y
+    solo se vuelve a convertir si el formato cambió. Regresa la ruta o None si no se pudo."""
+    import subprocess, tempfile, uuid
+    origen = siniestro.carpeta / archivo
+    if not origen.is_file():
+        return None
+    destino_dir = siniestro.carpeta / "pdf"
+    destino = destino_dir / (origen.stem + ".pdf")
+    if destino.is_file() and destino.stat().st_mtime >= origen.stat().st_mtime:
+        return destino
+    soffice = _soffice()
+    if not soffice:
+        log.warning("No está instalado LibreOffice: no se puede convertir a PDF")
+        return None
+    destino_dir.mkdir(parents=True, exist_ok=True)
+    perfil = Path(tempfile.gettempdir()) / f"lo_{uuid.uuid4().hex}"  # perfil propio: permite conversiones simultáneas
+    try:
+        subprocess.run([soffice, f"-env:UserInstallation={perfil.as_uri()}", "--headless", "--norestore",
+                        "--convert-to", "pdf", "--outdir", str(destino_dir), str(origen)],
+                       check=True, timeout=75, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        log.exception("Falló la conversión a PDF de %s/%s", siniestro.folio, archivo)
+        return None
+    finally:
+        import shutil
+        shutil.rmtree(perfil, ignore_errors=True)
+    return destino if destino.is_file() else None
 
 
 def puede_editar(user, siniestro):

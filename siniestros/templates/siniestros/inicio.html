@@ -46,7 +46,7 @@
     <div class="pie">{% if revisor %}<span class="dato"><b>{{ sin_pend }}</b> por revisar</span>{% endif %}<span class="dato"><b>{{ sin_hoy }}</b> hoy</span><span class="ir">Abrir →</span></div>
   </a>
   {% endif %}
-  {% if revisor %}
+  {% if puede_liberar %}
   <a class="mod m-lib" href="{% url 'liberacion_nueva' %}">
     <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/></svg></span>
     <h2>Liberación exprés</h2>
@@ -57,7 +57,7 @@
   <a class="mod m-rep" href="{% url 'lista' %}">
     <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></span>
     <h2>{% if revisor %}Reportes{% else %}Mis reportes{% endif %}</h2>
-    <p>Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.</p>
+    <p>{% if puede_liberar %}Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.{% else %}Consulta y busca siniestros y liberaciones. Descarga los formatos en Word, Excel o PDF.{% endif %}</p>
     <div class="pie"><span class="dato"><b>{{ total }}</b> en total</span><span class="ir">Ver →</span></div>
   </a>
 </div>

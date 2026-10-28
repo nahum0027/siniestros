@@ -16,7 +16,11 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 .narr{white-space:pre-wrap;background:#f7f9fb;border-radius:10px;padding:12px;margin:0}
 .doc{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 8px;text-decoration:none;color:var(--ink);font-weight:600}
 .doc:hover{border-color:var(--pri-2)}
-.doc span{color:var(--pri-2);font-size:13px}
+.doc .nom{color:var(--ink);font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc .acc{display:flex;gap:6px;flex:none}
+.doc .acc a{color:var(--pri-2);font-size:13px;font-weight:650;text-decoration:none;padding:4px 10px;border:1.5px solid var(--line);border-radius:999px}
+.doc .acc a:hover{border-color:var(--pri-2)}
+.doc .acc a.cargando{opacity:.6;pointer-events:none}
 .imgs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .imgs figure{margin:0}
 .imgs img{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
@@ -164,8 +168,14 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
   <div>
     <section class="card"><h2>Formatos</h2>
       {% for doc in s.documentos %}
-        <a class="doc" href="{% url 'descargar' s.folio doc %}">{{ doc }}<span>Descargar ↓</span></a>
+        {% if puede_descargar %}
+        <div class="doc"><span class="nom">{{ doc }}</span><span class="acc">
+          <a href="{% url 'descargar' s.folio doc %}">{% if doc|slice:"-5:" == ".xlsx" %}Excel{% else %}Word{% endif %} ↓</a>
+          <a href="{% url 'descargar' s.folio doc|cut:'.docx'|cut:'.xlsx'|add:'.pdf' %}" data-pdf>PDF ↓</a>
+        </span></div>
+        {% else %}<div class="doc"><span class="nom">{{ doc }}</span></div>{% endif %}
       {% empty %}<p class="vacio" style="padding:10px">Sin formatos generados.</p>{% endfor %}
+      {% if s.documentos and not puede_descargar %}<p style="color:var(--muted);font-size:13px;margin:4px 0 0">No tienes permiso para descargar los formatos.</p>{% endif %}
       {% if s.correo_error %}<div class="msg error" style="margin:8px 0 0;font-size:13px">El correo no se pudo enviar: {{ s.correo_error|truncatechars:160 }}</div>
       {% elif s.correo_enviado_en %}<p style="color:var(--muted);font-size:13px;margin:8px 0 0">Correo enviado el {{ s.correo_enviado_en|date:"d/m/Y H:i" }}</p>{% endif %}
     </section>
@@ -216,4 +226,11 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
     </section>
   </div>
 </div>
+<script>
+// la primera vez el PDF tarda unos segundos en generarse
+document.querySelectorAll("a[data-pdf]").forEach(a => a.addEventListener("click", () => {
+  const t = a.textContent; a.textContent = "Generando PDF…"; a.classList.add("cargando");
+  setTimeout(() => { a.textContent = t; a.classList.remove("cargando"); }, 6000);
+}));
+</script>
 {% endblock %}

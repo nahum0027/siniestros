@@ -57,15 +57,17 @@ def _cfg_usuario(user):
 def inicio(request):
     """Pantalla de inicio con los módulos. Los agentes de campo (un solo módulo) van directo a capturar."""
     u = request.user
-    puede_capturar, revisor = u.has_perm("siniestros.capturar_siniestro"), sv.puede_revisar(u)
+    puede_capturar, revisor = u.has_perm("siniestros.capturar_siniestro"), sv.ve_todo(u)
     if puede_capturar and not revisor:
         return redirect("formulario")
+    if not sv.puede_revisar(u):  # rol Consulta: solo tiene el apartado de reportes
+        return redirect("lista")
     base = Siniestro.objects.all() if revisor else Siniestro.objects.filter(capturado_por=u)
     pendientes = [Siniestro.Estado.ENVIADO, Siniestro.Estado.REVISION]
     hoy = timezone.localdate()
     S, L = Siniestro.Tipo.SINIESTRO, Siniestro.Tipo.LIBERACION
     return render(request, "siniestros/inicio.html", {
-        "puede_capturar": puede_capturar, "revisor": revisor,
+        "puede_capturar": puede_capturar, "revisor": revisor, "puede_liberar": sv.puede_revisar(u),
         "sin_pend": base.filter(tipo=S, estado__in=pendientes).count(),
         "sin_hoy": base.filter(tipo=S, creado__date=hoy).count(),
         "lib_pend": base.filter(tipo=L, estado__in=pendientes).count(),
@@ -124,7 +126,8 @@ def _respuesta(request, s):
         "ok": True,
         "folio": s.folio,
         "url_reporte": f"/reportes/{s.folio}/",
-        "archivos": [{"nombre": a, "url": f"/descargar/{s.folio}/{a}"} for a in s.documentos()],
+        "archivos": [{"nombre": a, "url": f"/descargar/{s.folio}/{a}"} for a in s.documentos()]
+                    if sv.puede_descargar(request.user, s) else [],
     }
 
 
@@ -132,7 +135,7 @@ def _respuesta(request, s):
 @login_required
 def lista(request):
     qs = Siniestro.objects.select_related("capturado_por")
-    revisor = sv.puede_revisar(request.user)
+    revisor = sv.ve_todo(request.user)  # en la lista, "revisor" = ve todos los reportes
     if not revisor:
         qs = qs.filter(capturado_por=request.user)
     q = request.GET.get("q", "").strip()
@@ -160,6 +163,7 @@ def lista(request):
         "estados": estados, "total": base.count(), "revisor": revisor, "tipo": tipo,
         "tipos": [(t, n, base.filter(tipo=t).count()) for t, n in (("SINIESTRO", "Siniestros"), ("LIBERACION", "Liberaciones exprés"))],
         "puede_capturar": request.user.has_perm("siniestros.capturar_siniestro"),
+        "puede_liberar": sv.puede_revisar(request.user),
     })
 
 
@@ -173,7 +177,8 @@ def detalle(request, folio):
         "s": s, "d": s.datos, "imagenes": imagenes, "fotos": sv.fotos_para_mostrar(s),
         "danos": [n.capitalize() for n in sv.lista_danos(s.datos)],
         "cambios": s.cambios.select_related("usuario"),
-        "revisor": sv.puede_revisar(request.user),
+        "revisor": sv.ve_todo(request.user),
+        "puede_descargar": sv.puede_descargar(request.user, s),
         "puede_editar": sv.puede_editar(request.user, s),
         "puede_reabrir": request.user.has_perm("siniestros.reabrir_siniestro") and s.bloqueado,
         "guardado": request.GET.get("guardado"), "sin_cambios": request.GET.get("sin_cambios"),
@@ -203,7 +208,19 @@ def foto(request, folio, nombre):
 @login_required
 def descargar(request, folio, archivo):
     s = get_object_or_404(Siniestro, folio=folio)
-    if not sv.puede_ver(request.user, s) or archivo not in s.documentos():
+    if not sv.puede_descargar(request.user, s):
+        raise Http404
+    if archivo.endswith(".pdf"):  # PDF de un formato: se convierte al pedirlo (y se guarda)
+        base = archivo[:-4]
+        original = next((d for d in s.documentos() if d.rsplit(".", 1)[0] == base), None)
+        if not original:
+            raise Http404
+        p = sv.pdf_de(s, original)
+        if not p:
+            messages.error(request, "No se pudo generar el PDF en este momento. Descarga el formato original e inténtalo más tarde.")
+            return redirect("detalle", folio=folio)
+        return FileResponse(open(p, "rb"), as_attachment=True, filename=f"{folio}_{archivo}")
+    if archivo not in s.documentos():
         raise Http404
     return FileResponse(open(s.carpeta / archivo, "rb"), as_attachment=True, filename=f"{folio}_{archivo}")
 

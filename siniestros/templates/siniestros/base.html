@@ -57,7 +57,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pri-2);b
     {% if perms.siniestros.revisar_siniestro %}<a href="{% url 'inicio' %}" class="{% block nav_inicio %}{% endblock %}">Inicio</a>{% endif %}
     {% if perms.siniestros.capturar_siniestro %}<a href="{% url 'formulario' %}">Capturar</a>{% endif %}
     {% if perms.siniestros.revisar_siniestro %}<a href="{% url 'liberacion_nueva' %}" class="{% block nav_lib %}{% endblock %}">Liberación exprés</a>{% endif %}
-    <a href="{% url 'lista' %}" class="{% block nav_lista %}{% endblock %}">{% if perms.siniestros.revisar_siniestro %}Reportes{% else %}Mis reportes{% endif %}</a>
+    <a href="{% url 'lista' %}" class="{% block nav_lista %}{% endblock %}">{% if perms.siniestros.revisar_siniestro or perms.siniestros.consultar_siniestro %}Reportes{% else %}Mis reportes{% endif %}</a>
     {% if user.is_staff %}<a href="{% url 'admin:index' %}">Usuarios</a>{% endif %}
     <a href="{% url 'cambiar_contrasena' %}" class="{% block nav_cuenta %}{% endblock %}" title="Cambiar contraseña">Contraseña</a>
     <form method="post" action="{% url 'salir' %}" style="margin:0">{% csrf_token %}<button type="submit">Salir</button></form>

@@ -6,6 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# LibreOffice (sin interfaz) para convertir los formatos a PDF, con fuentes compatibles
+# con Calibri/Arial/Times para que el PDF salga igual que en Word/Excel
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libreoffice-writer-nogui libreoffice-calc-nogui \
+    fonts-crosextra-carlito fonts-crosextra-caladea fonts-liberation fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 

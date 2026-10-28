@@ -36,10 +36,10 @@ tr.fila:hover td{background:#f7f9fb}
 <div class="cab">
   <div>
     <h1>{% if revisor %}Reportes de siniestros{% else %}Mis reportes{% endif %}</h1>
-    <p class="sub" style="margin:0">{% if revisor %}Todos los reportes capturados en campo.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
+    <p class="sub" style="margin:0">{% if revisor %}Todos los reportes capturados.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    {% if revisor %}<a class="btn" href="{% url 'liberacion_nueva' %}">+ Liberación exprés</a>{% endif %}
+    {% if puede_liberar %}<a class="btn" href="{% url 'liberacion_nueva' %}">+ Liberación exprés</a>{% endif %}
     {% if puede_capturar %}<a class="btn pri" href="{% url 'formulario' %}">+ Capturar siniestro</a>{% endif %}
   </div>
 </div>

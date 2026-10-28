@@ -44,6 +44,8 @@ class Siniestro(models.Model):
             ("capturar_siniestro", "Puede capturar siniestros en campo"),
             ("revisar_siniestro", "Puede consultar, editar y validar todos los siniestros"),
             ("reabrir_siniestro", "Puede reabrir siniestros validados"),
+            ("consultar_siniestro", "Puede consultar todos los reportes (solo lectura)"),
+            ("descargar_formatos", "Puede descargar los formatos llenos (Word, Excel y PDF)"),
         ]
 
     def __str__(self):
