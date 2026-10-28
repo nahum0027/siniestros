@@ -123,7 +123,6 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Placas / modelo</dt><dd>{{ d.a.placas|default:"—" }} / {{ d.a.modelo|default:"—" }}</dd></div>
       <div><dt>Trayectoria</dt><dd>{{ d.a.trayectoria|default:"—" }}</dd></div>
       <div><dt>Estado</dt><dd>{% if d.a.fallecido %}Fallecido{% elif d.a.lesionado %}Lesionado{% else %}Sin lesiones{% endif %}</dd></div>
-      {% if d.a.liberada %}<div class="ancho"><dt>Unidad liberada</dt><dd>{{ d.a.liberada_destino|default:"Sí (sin destino)" }}</dd></div>{% endif %}
     </dl></section>
 
     <section class="card"><h2>Partícipe B</h2>
@@ -158,6 +157,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       <div><dt>Grados de alcohol</dt><dd>{{ d.alcohol_grados|default:"—" }}</dd></div>
       <div><dt>Autoridad que arriba</dt><dd>{{ d.alcohol_autoridad|default:"—" }}</dd></div>
       {% endif %}
+      {% if d.a.liberada %}<div class="ancho"><dt>Unidad liberada</dt><dd>{{ d.a.liberada_destino|default:"Sí (sin destino)" }}</dd></div>{% endif %}
       {% if d.danos %}<div class="ancho"><dt>Daños</dt><dd>{{ danos|join:", "|default:"Sí (sin especificar)" }}</dd></div>{% endif %}
       {% if d.nota %}<div class="ancho"><dt>Nota</dt><dd>{{ d.nota }}</dd></div>{% endif %}
       <div class="ancho"><dt>Redacción de hechos</dt><dd><p class="narr">{{ d.narrativa|default:"—" }}</p></dd></div>

@@ -223,15 +223,6 @@ footer .btn{flex:1;max-width:340px}
     <fieldset><legend>Después del hecho</legend>
       <label class="chk"><input type="checkbox" name="a.lesionado"> Lesionado</label>
       <label class="chk"><input type="checkbox" name="a.fallecido"> Fallecido</label>
-      <label class="chk na"><input type="checkbox" name="a.liberada"> Unidad liberada</label>
-      <div class="sub-bloque na" data-si="a.liberada=true">
-        <div class="seg seg-col">
-          <label><input type="radio" name="a.liberada_destino" value="CONTINUAR EN RUTA"><span>Continuar en ruta</span></label>
-          <label><input type="radio" name="a.liberada_destino" value="AVANCE A MANTENIMIENTO"><span>Avance a mantenimiento</span></label>
-          <label><input type="radio" name="a.liberada_destino" value="AVANCE A PATIO LA NACIÓN"><span>Avance a patio La Nación</span></label>
-          <label><input type="radio" name="a.liberada_destino" value="AVANCE A PATIO VÍA LÁCTEA"><span>Avance a patio Vía Láctea</span></label>
-        </div>
-      </div>
       <div class="campo"><label>Vehículo remolcado por</label><input type="text" name="a.remolcado_por"></div>
       <div class="campo"><label>Vehículo trasladado a</label><input type="text" name="a.trasladado_a"></div>
       <div class="campo"><label>A disposición de</label><input type="text" name="a.disposicion"></div>
@@ -316,6 +307,15 @@ footer .btn{flex:1;max-width:340px}
         <label class="chk na"><input type="checkbox" name="danos_carroceria"> Carrocería</label>
         <label class="chk na"><input type="checkbox" name="danos_retrovisor"> Retrovisor</label>
         <label class="chk na"><input type="checkbox" name="danos_rack"> Rack</label>
+      </div>
+      <label class="chk na"><input type="checkbox" name="a.liberada"> Unidad liberada</label>
+      <div class="sub-bloque na" data-si="a.liberada=true">
+        <div class="seg seg-col">
+          <label><input type="radio" name="a.liberada_destino" value="CONTINUAR EN RUTA"><span>Continuar en ruta</span></label>
+          <label><input type="radio" name="a.liberada_destino" value="AVANCE A MANTENIMIENTO"><span>Avance a mantenimiento</span></label>
+          <label><input type="radio" name="a.liberada_destino" value="AVANCE A PATIO LA NACIÓN"><span>Avance a patio La Nación</span></label>
+          <label><input type="radio" name="a.liberada_destino" value="AVANCE A PATIO VÍA LÁCTEA"><span>Avance a patio Vía Láctea</span></label>
+        </div>
       </div>
       <label class="chk"><input type="checkbox" name="alcohol"> Algún conductor bajo influjo de alcohol o sustancias</label>
       <div class="sub-bloque" data-si="alcohol=true">
