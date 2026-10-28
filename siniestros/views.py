@@ -176,6 +176,7 @@ def detalle(request, folio):
     return render(request, "siniestros/detalle.html", {
         "s": s, "d": s.datos, "imagenes": imagenes, "fotos": sv.fotos_para_mostrar(s),
         "danos": [n.capitalize() for n in sv.lista_danos(s.datos)],
+        "resumen": sv.resumen_secciones(s),
         "cambios": s.cambios.select_related("usuario"),
         "revisor": sv.ve_todo(request.user),
         "puede_descargar": sv.puede_descargar(request.user, s),

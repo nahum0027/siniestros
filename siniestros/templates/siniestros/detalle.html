@@ -166,6 +166,15 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
   </div>
 
   <div>
+    <section class="card"><h2>Resumen</h2>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 10px">Todo lo de esta pantalla en texto, listo para pegar en un correo, WhatsApp o Word.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn pri" id="btnCopiar">📋 Copiar resumen</button>
+        <button type="button" class="btn sec" id="btnTxt">⬇ Descargar .txt</button>
+      </div>
+      {{ resumen|json_script:"resumenDatos" }}
+    </section>
+
     <section class="card"><h2>Formatos</h2>
       {% for doc in s.documentos %}
         {% if puede_descargar %}
@@ -232,5 +241,45 @@ document.querySelectorAll("a[data-pdf]").forEach(a => a.addEventListener("click"
   const t = a.textContent; a.textContent = "Generando PDF…"; a.classList.add("cargando");
   setTimeout(() => { a.textContent = t; a.classList.remove("cargando"); }, 6000);
 }));
+</script>
+<script>
+// ---- Resumen para copiar y pegar: texto con formato (Word/correo) y texto plano (WhatsApp, Notas, etc.)
+(() => {
+  const secciones = JSON.parse(document.getElementById("resumenDatos").textContent);
+  const folio = "{{ s.folio }}";
+  const texto = secciones.map(([t, filas]) =>
+    t + "\n" + filas.map(([e, v]) => e ? `${e}: ${v}` : v).join("\n")).join("\n\n");
+  const esc = x => String(x).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const html = secciones.map(([t, filas]) =>
+    `<p style="margin:12px 0 4px"><b>${esc(t)}</b></p>` +
+    filas.map(([e, v]) => `<div>${e ? `<b>${esc(e)}:</b> ` : ""}${esc(v).replace(/\n/g, "<br>")}</div>`).join("")).join("");
+  const avisar = (b, msg) => { const t = b.textContent; b.textContent = msg; setTimeout(() => b.textContent = t, 2200); };
+  const copiaVieja = () => {  // cuando el navegador no permite el portapapeles moderno (p. ej. sin https)
+    const ta = document.createElement("textarea"); ta.value = texto; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+    ta.remove(); return ok;
+  };
+  document.getElementById("btnCopiar").addEventListener("click", async ev => {
+    const b = ev.currentTarget;
+    try {
+      if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/plain": new Blob([texto], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }) })]);
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(texto);
+      } else if (!copiaVieja()) throw new Error("sin portapapeles");
+      avisar(b, "✓ Copiado");
+    } catch (e) {
+      avisar(b, copiaVieja() ? "✓ Copiado" : "No se pudo copiar");
+    }
+  });
+  document.getElementById("btnTxt").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + texto.replace(/\n/g, "\r\n")], { type: "text/plain;charset=utf-8" }));
+    a.download = `${folio}_resumen.txt`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+})();
 </script>
 {% endblock %}

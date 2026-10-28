@@ -325,6 +325,88 @@ def resumen_generalidades_lib(d):
     return " · ".join(partes)
 
 
+def resumen_secciones(s):
+    """El resumen del reporte como [(título, [(etiqueta, valor), ...])], para copiar y pegar.
+    Sigue el mismo orden que la pantalla de detalle."""
+    d = s.datos or {}
+    a, b = d.get("a") or {}, d.get("b") or {}
+    v = lambda x: str(x).strip() if x not in (None, "", False) else "—"
+    sino = lambda x: {"SI": "Sí", "SÍ": "Sí", "NO": "No"}.get(str(x or "").upper(), "—")
+    fecha = s.fecha_hecho.strftime("%d/%m/%Y") if s.fecha_hecho else "—"
+    danos = ", ".join(n.capitalize() for n in lista_danos(d)) or "Sí (sin especificar)"
+
+    def alcohol(quien):
+        if not d.get("alcohol"):
+            return []
+        return [("Alcohol / sustancias", "Sí" + (f" — {quien}" if quien else "")),
+                ("Grados de alcohol", v(d.get("alcohol_grados"))),
+                ("Autoridad que arriba", v(d.get("alcohol_autoridad")))]
+
+    if s.es_liberacion:
+        quien = {"A": "ejecutivo", "B": "otro conductor"}.get(d.get("alcohol_conductor"), "")
+        gen = [("Liberada, enviar a", v(d.get("enviar_a"))), ("Causal", v(d.get("causal"))),
+               ("Colisión", v(d.get("colision"))), ("Unidad responsable", sino(d.get("responsable"))),
+               ("Medio de prueba", v(d.get("medio_prueba")))]
+        gen += [("Daños", danos)] if d.get("danos") else []
+        gen += alcohol(quien)
+        gen += [("Nota", v(d.get("nota")))] if d.get("nota") else []
+        otro = d.get("hay_participe") or b.get("seguro") or b.get("garantiza")
+        seg = [("¿Se activa seguro HDI?", sino(d.get("activa_seguro"))),
+               ("Motivo de activación", v(d.get("motivo_activacion"))), ("Pase médico", v(d.get("pase_medico"))),
+               ("Otro partícipe", "Sí" if otro else "No")]
+        seg += [("Seguro otro partícipe / garantiza", f"{v(b.get('seguro'))} / {v(b.get('garantiza'))}")] if (b.get("seguro") or b.get("garantiza")) else []
+        return [
+            (f"LIBERACIÓN EXPRÉS {s.folio}", [("Fecha", fecha), ("Ejecutivo(a)", v(d.get("ejecutivo"))),
+                                              ("# Empleado", v(d.get("no_empleado"))),
+                                              ("Económico / ruta", f"{v(d.get('economico'))} / {v(d.get('ruta'))}")]),
+            ("GENERALIDADES", gen), ("SEGUROS", seg)]
+
+    estado = lambda p: "Fallecido" if p.get("fallecido") else "Lesionado" if p.get("lesionado") else "Sin lesiones"
+    comp = v(d.get("competencia")) + (f" ({d['competencia_otro']})" if d.get("competencia_otro") else "")
+    lugar = v(d.get("lugar")) + (f" · {d['colonia']}" if d.get("colonia") else "")
+    secciones = [
+        (f"SINIESTRO {s.folio}", [("Fecha y hora", f"{fecha} {d.get('hora') or ''}".strip()),
+                                  ("Ruta / económico", f"{v(d.get('ruta'))} / {v(d.get('economico'))}"),
+                                  ("Competencia", comp), ("Reporte aseguradora", v(d.get("reporte_aseguradora"))),
+                                  ("Lugar", lugar)]),
+        ("PARTÍCIPE A · EJECUTIVO(A)", [
+            ("Nombre", v(a.get("nombre"))), ("No. empleado", v(a.get("no_empleado"))), ("Teléfono", v(a.get("telefono"))),
+            ("Edad / sexo", f"{v(a.get('edad'))} / {v(a.get('sexo'))}"),
+            ("Licencia / vigencia", f"{v(a.get('licencia'))} / {v(a.get('vigencia'))}"), ("Tarjetón", v(a.get("tarjeton"))),
+            ("Placas / modelo", f"{v(a.get('placas'))} / {v(a.get('modelo'))}"), ("Trayectoria", v(a.get("trayectoria"))),
+            ("Estado", estado(a))]),
+    ]
+    if d.get("b_no_aplica"):
+        secciones.append(("PARTÍCIPE B", [("Partícipe B", "No aplica — no hubo segundo partícipe")]))
+    else:
+        secciones.append(("PARTÍCIPE B", [
+            ("Nombre", v(b.get("nombre"))), ("Teléfono", v(b.get("telefono"))),
+            ("Edad / sexo", f"{v(b.get('edad'))} / {v(b.get('sexo'))}"),
+            ("Vehículo", f"{v(b.get('marca'))} {b.get('modelo') or ''}".strip()),
+            ("Placas", f"{v(b.get('placas'))} ({v(b.get('entidad'))})"), ("Estado", estado(b))]))
+    les = [l for l in d.get("lesionados") or [] if (l.get("nombre") or "").strip()]
+    if les:
+        secciones.append(("LESIONADOS", [(f"{i}. {l['nombre']}", " · ".join(x for x in (
+            l.get("direccion") or "", l.get("telefono") or "", f"Pase {l['pase_medico']}" if l.get("pase_medico") else "",
+            f"Trasladado a {l['trasladado_a']}" if l.get("trasladado_a") else "") if x) or "—") for i, l in enumerate(les, 1)]))
+    gen = [("Causal", v(d.get("causal"))), ("Colisión", v(d.get("colision"))), ("Unidad responsable", v(d.get("responsable"))),
+           ("Medio de prueba", v(d.get("medio_prueba"))), ("¿Se activa seguro HDI?", sino(d.get("seguro_hdi"))),
+           ("Seguro A / garantiza", f"HDI SEGUROS / {v(a.get('garantiza'))}")]
+    if not d.get("b_no_aplica"):
+        gen.append(("Seguro B / garantiza", f"{v(b.get('seguro'))} / {v(b.get('garantiza'))}"))
+    gen.append(("Convenio", f"Sí — {d.get('forma_reparacion') or ''}".strip(" —") if d.get("aplica_convenio") else "No"))
+    gen += alcohol(f"conductor {d['alcohol_conductor']}" if d.get("alcohol_conductor") else "")
+    if a.get("liberada"):
+        gen.append(("Unidad liberada", v(a.get("liberada_destino")) if a.get("liberada_destino") else "Sí (sin destino)"))
+    if d.get("danos"):
+        gen.append(("Daños", danos))
+    if d.get("nota"):
+        gen.append(("Nota", v(d.get("nota"))))
+    secciones.append(("GENERALIDADES", gen))
+    secciones.append(("REDACCIÓN DE HECHOS", [("", v(d.get("narrativa")))]))
+    return secciones
+
+
 def regenerar_liberacion(siniestro):
     datos = dict(siniestro.datos)
     datos["fecha"] = _fecha(datos.get("fecha")) or siniestro.creado.date()
