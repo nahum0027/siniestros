@@ -179,7 +179,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       {% for doc in s.documentos %}
         {% if puede_descargar %}
         <div class="doc"><span class="nom">{{ doc }}</span><span class="acc">
-          <a href="{% url 'descargar' s.folio doc %}">{% if doc|slice:"-5:" == ".xlsx" %}Excel{% else %}Word{% endif %} ↓</a>
+          {% if puede_originales %}<a href="{% url 'descargar' s.folio doc %}">{% if doc|slice:"-5:" == ".xlsx" %}Excel{% else %}Word{% endif %} ↓</a>{% endif %}
           <a href="{% url 'descargar' s.folio doc|cut:'.docx'|cut:'.xlsx'|add:'.pdf' %}" data-pdf>PDF ↓</a>
         </span></div>
         {% else %}<div class="doc"><span class="nom">{{ doc }}</span></div>{% endif %}

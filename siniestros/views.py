@@ -127,7 +127,7 @@ def _respuesta(request, s):
         "folio": s.folio,
         "url_reporte": f"/reportes/{s.folio}/",
         "archivos": [{"nombre": a, "url": f"/descargar/{s.folio}/{a}"} for a in s.documentos()]
-                    if sv.puede_descargar(request.user, s) else [],
+                    if sv.puede_descargar_originales(request.user, s) else [],
     }
 
 
@@ -180,6 +180,7 @@ def detalle(request, folio):
         "cambios": s.cambios.select_related("usuario"),
         "revisor": sv.ve_todo(request.user),
         "puede_descargar": sv.puede_descargar(request.user, s),
+        "puede_originales": sv.puede_descargar_originales(request.user, s),
         "puede_editar": sv.puede_editar(request.user, s),
         "puede_reabrir": request.user.has_perm("siniestros.reabrir_siniestro") and s.bloqueado,
         "guardado": request.GET.get("guardado"), "sin_cambios": request.GET.get("sin_cambios"),
@@ -211,6 +212,8 @@ def descargar(request, folio, archivo):
     s = get_object_or_404(Siniestro, folio=folio)
     if not sv.puede_descargar(request.user, s):
         raise Http404
+    if not archivo.endswith(".pdf") and not sv.puede_descargar_originales(request.user, s):
+        raise Http404  # el rol Consulta solo descarga PDF
     if archivo.endswith(".pdf"):  # PDF de un formato: se convierte al pedirlo (y se guarda)
         base = archivo[:-4]
         original = next((d for d in s.documentos() if d.rsplit(".", 1)[0] == base), None)

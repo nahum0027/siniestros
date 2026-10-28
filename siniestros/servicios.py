@@ -498,7 +498,13 @@ def puede_ver(user, siniestro):
 
 
 def puede_descargar(user, siniestro):
+    """Descargar en PDF."""
     return user.has_perm("siniestros.descargar_formatos") and puede_ver(user, siniestro)
+
+
+def puede_descargar_originales(user, siniestro):
+    """Descargar los editables (Word/Excel). El rol Consulta no lo tiene: solo PDF."""
+    return user.has_perm("siniestros.descargar_originales") and puede_ver(user, siniestro)
 
 
 # ------------------------------------------------------------------ PDF
