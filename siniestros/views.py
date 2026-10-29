@@ -385,7 +385,8 @@ CAMPOS_LIB = ["fecha", "ejecutivo", "no_empleado", "economico", "ruta",
               "activa_seguro", "motivo_activacion", "causal", "pase_medico",
               # generalidades (igual que en el reporte de campo, sin anexos)
               "enviar_a", "colision", "responsable", "medio_prueba", "nota",
-              "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b"]
+              "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b",
+              "notas_internas"]  # solo plataforma: no va en el Word/PDF
 CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "danos_rack", "alcohol", "hay_participe"]
 OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)"}
 

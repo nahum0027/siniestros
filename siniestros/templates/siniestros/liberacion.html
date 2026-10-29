@@ -134,6 +134,11 @@
       </div>
     </section>
 
+    <section class="card"><h2>Notas</h2>
+      <p class="ayuda-f">Solo para la plataforma: aparecen en el resumen del reporte, <b>no</b> en el formato Word/PDF.</p>
+      <textarea id="notas_internas" name="notas_internas" style="min-height:110px" placeholder="Observaciones internas…">{{ d.notas_internas|default:'' }}</textarea>
+    </section>
+
     <section class="card"><h2>Fotos</h2>
       <p class="ayuda-f">Del hecho, de los daños o de documentos. Hasta {{ max_fotos }} fotos; se reducen antes de guardarse.</p>
       <div class="miniaturas" id="miniaturas"></div>

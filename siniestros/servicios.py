@@ -63,7 +63,7 @@ ETIQUETAS = {
     "motivo_activacion": "Motivo de activación", "pase_medico": "Pase médico",
     "alcohol_autoridad": "Autoridad que arriba (alcohol)", "alcohol_conductor": "Conductor con alcohol",
     "alcohol_grados": "Grados de alcohol",
-    "seguro_hdi": "¿Se activa seguro HDI?", "enviar_a": "Liberada, enviar a", "hay_participe": "Hubo otro partícipe",
+    "notas_internas": "Notas", "seguro_hdi": "¿Se activa seguro HDI?", "enviar_a": "Liberada, enviar a", "hay_participe": "Hubo otro partícipe",
     "danos": "Hay daños", "danos_cristal": "Daño: cristal", "danos_carroceria": "Daño: carrocería",
     "danos_retrovisor": "Daño: retrovisor", "danos_rack": "Daño: rack",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
@@ -355,11 +355,12 @@ def resumen_secciones(s):
                ("Motivo de activación", v(d.get("motivo_activacion"))), ("Pase médico", v(d.get("pase_medico"))),
                ("Otro partícipe", "Sí" if otro else "No")]
         seg += [("Seguro otro partícipe / garantiza", f"{v(b.get('seguro'))} / {v(b.get('garantiza'))}")] if (b.get("seguro") or b.get("garantiza")) else []
+        notas = [("NOTAS", [("", d["notas_internas"].strip())])] if (d.get("notas_internas") or "").strip() else []
         return [
             (f"LIBERACIÓN EXPRÉS {s.folio}", [("Fecha", fecha), ("Ejecutivo(a)", v(d.get("ejecutivo"))),
                                               ("# Empleado", v(d.get("no_empleado"))),
                                               ("Económico / ruta", f"{v(d.get('economico'))} / {v(d.get('ruta'))}")]),
-            ("GENERALIDADES", gen), ("SEGUROS", seg)]
+            ("GENERALIDADES", gen), ("SEGUROS", seg)] + notas
 
     estado = lambda p: "Fallecido" if p.get("fallecido") else "Lesionado" if p.get("lesionado") else "Sin lesiones"
     comp = v(d.get("competencia")) + (f" ({d['competencia_otro']})" if d.get("competencia_otro") else "")
