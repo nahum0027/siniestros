@@ -97,6 +97,7 @@ class Cambio(models.Model):
         EDITADO = "EDITADO", "Editado"
         ESTADO = "ESTADO", "Cambio de estado"
         CORREO = "CORREO", "Correo"
+        DESCARGA = "DESCARGA", "Descarga"
 
     siniestro = models.ForeignKey(Siniestro, on_delete=models.CASCADE, related_name="cambios")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True)

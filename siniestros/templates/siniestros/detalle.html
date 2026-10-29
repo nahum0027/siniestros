@@ -42,6 +42,9 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 .hist>li.ESTADO::before{background:var(--ok)}
 .hist>li.CORREO::before{background:#9fb0bd}
 .hist .quien{font-weight:650}
+.desc{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:14px}
+.desc:last-child{border:0}
+.desc .cuando{color:var(--muted);font-size:13px;white-space:nowrap}
 .hist .cuando{color:var(--muted);font-size:13px}
 .diff{margin:8px 0 0;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;font-size:13px}
 .diff div{display:grid;grid-template-columns:minmax(110px,.9fr) 1fr 1fr;gap:8px;padding:6px 8px;border-top:1px solid var(--line-2)}
@@ -214,6 +217,14 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
         <input name="motivo" placeholder="Motivo (obligatorio)" required maxlength="200">
         <button class="btn bad" type="submit">Reabrir</button>
       </form>
+    </section>
+    {% endif %}
+
+    {% if descargas is not None %}
+    <section class="card"><h2>Descargas</h2>
+      {% for c in descargas %}
+        <div class="desc"><span><b>{{ c.usuario.get_full_name|default:c.usuario.username }}</b> · {{ c.descripcion|cut:"Descargó " }}</span><span class="cuando">{{ c.fecha|date:"d/m/Y H:i" }}</span></div>
+      {% empty %}<p style="color:var(--muted);font-size:14px;margin:0">Nadie ha descargado este reporte.</p>{% endfor %}
     </section>
     {% endif %}
 

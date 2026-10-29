@@ -15,6 +15,7 @@ urlpatterns = [
     path("api/enviar/", views.enviar, name="enviar"),
     # oficina
     path("reportes/", views.lista, name="lista"),
+    path("descargas/", views.descargas, name="descargas"),
     path("reportes/<str:folio>/", views.detalle, name="detalle"),
     path("reportes/<str:folio>/editar/", views.editar, name="editar"),
     path("reportes/<str:folio>/estado/", views.cambiar_estado, name="estado"),

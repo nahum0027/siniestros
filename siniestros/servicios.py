@@ -497,6 +497,12 @@ def puede_ver(user, siniestro):
     return ve_todo(user) or siniestro.capturado_por_id == user.id
 
 
+def registrar_descarga(siniestro, user, archivo):
+    """Deja constancia de quién descargó qué formato (se ve en el detalle y en Descargas)."""
+    Cambio.objects.create(siniestro=siniestro, usuario=user, tipo=Cambio.Tipo.DESCARGA,
+                          descripcion=f"Descargó {archivo}")
+
+
 def puede_descargar(user, siniestro):
     """Descargar en PDF."""
     return user.has_perm("siniestros.descargar_formatos") and puede_ver(user, siniestro)

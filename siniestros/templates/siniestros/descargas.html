@@ -1,0 +1,66 @@
+{% extends "siniestros/base.html" %}
+{% block titulo %}Historial de descargas{% endblock %}
+{% block nav_lista %}act{% endblock %}
+{% block estilos %}
+.volver{display:inline-block;margin:0 0 10px;font-weight:600;text-decoration:none}
+.filtros{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}
+.filtros label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+.filtros input{width:100%}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line-2);vertical-align:top;font-size:14px}
+.folio{font-family:ui-monospace,Consolas,monospace;font-size:13px;font-weight:700;color:var(--pri);text-decoration:none}
+.tenue{color:var(--muted);font-size:13px}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fmt{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--pri-soft);color:var(--pri)}
+.fmt.pdf{background:var(--bad-soft);color:var(--bad)}
+.pag{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px}
+@media (max-width:760px){
+  .filtros{grid-template-columns:1fr 1fr}
+  .filtros .q{grid-column:1/-1}
+  thead{display:none}
+  tr{display:block;padding:10px 2px;border-bottom:1px solid var(--line-2)}
+  td{display:inline;border:0;padding:0 6px 0 0}
+  td.num{display:block;margin-top:2px}
+}
+{% endblock %}
+{% block contenido %}
+<a class="volver" href="{% url 'lista' %}">← Reportes</a>
+<h1>Historial de descargas</h1>
+<p class="sub">Quién descargó cada formato y cuándo. {{ total }} descarga{{ total|pluralize }}{% if q or desde or hasta %} con estos filtros{% endif %}.</p>
+
+<form class="card filtros" method="get">
+  <div class="q"><label for="q">Buscar</label><input id="q" name="q" value="{{ q }}" placeholder="Folio o usuario"></div>
+  <div><label for="desde">Desde</label><input id="desde" type="date" name="desde" value="{{ desde }}"></div>
+  <div><label for="hasta">Hasta</label><input id="hasta" type="date" name="hasta" value="{{ hasta }}"></div>
+  <div style="display:flex;gap:6px"><button class="btn pri" type="submit">Buscar</button>{% if q or desde or hasta %}<a class="btn sec" href="?">Limpiar</a>{% endif %}</div>
+</form>
+
+<div class="card" style="padding:6px 10px">
+  {% if pagina.object_list %}
+  <table>
+    <thead><tr><th>Fecha</th><th>Usuario</th><th>Reporte</th><th>Archivo</th></tr></thead>
+    <tbody>
+    {% for c in pagina %}
+      <tr>
+        <td class="num">{{ c.fecha|date:"d/m/Y H:i" }}</td>
+        <td><b>{{ c.usuario.get_full_name|default:c.usuario.username }}</b> <span class="tenue">{{ c.usuario.username }}</span></td>
+        <td><a class="folio" href="{% url 'detalle' c.siniestro.folio %}">{{ c.siniestro.folio }}</a></td>
+        <td>{% with archivo=c.descripcion|cut:"Descargó " %}{{ archivo }} <span class="fmt {% if archivo|slice:'-4:' == '.pdf' %}pdf{% endif %}">{% if archivo|slice:'-4:' == '.pdf' %}PDF{% elif archivo|slice:'-5:' == '.xlsx' %}Excel{% else %}Word{% endif %}</span>{% endwith %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="vacio">No hay descargas {% if q or desde or hasta %}con esos filtros{% else %}todavía{% endif %}.</div>
+  {% endif %}
+</div>
+
+{% if pagina.paginator.num_pages > 1 %}
+<div class="pag">
+  {% if pagina.has_previous %}<a class="btn sec" href="?p={{ pagina.previous_page_number }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">← Anterior</a>{% endif %}
+  <span class="tenue">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}<a class="btn sec" href="?p={{ pagina.next_page_number }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Siguiente →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

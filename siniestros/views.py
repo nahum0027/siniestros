@@ -168,6 +168,27 @@ def lista(request):
 
 
 @login_required
+def descargas(request):
+    """Historial general: quién descargó qué formato y cuándo (revisores y administradores)."""
+    if not sv.puede_revisar(request.user):
+        raise PermissionDenied
+    qs = Cambio.objects.filter(tipo=Cambio.Tipo.DESCARGA).select_related("usuario", "siniestro")
+    q = request.GET.get("q", "").strip()
+    if q:
+        qs = qs.filter(Q(siniestro__folio__icontains=q) | Q(usuario__username__icontains=q)
+                       | Q(usuario__first_name__icontains=q) | Q(usuario__last_name__icontains=q))
+    desde, hasta = request.GET.get("desde", ""), request.GET.get("hasta", "")
+    if desde:
+        qs = qs.filter(fecha__date__gte=desde)
+    if hasta:
+        qs = qs.filter(fecha__date__lte=hasta)
+    return render(request, "siniestros/descargas.html", {
+        "pagina": Paginator(qs, 50).get_page(request.GET.get("p")), "q": q, "desde": desde, "hasta": hasta,
+        "total": qs.count(),
+    })
+
+
+@login_required
 def detalle(request, folio):
     s = get_object_or_404(Siniestro.objects.select_related("capturado_por", "validado_por"), folio=folio)
     if not sv.puede_ver(request.user, s):
@@ -177,7 +198,9 @@ def detalle(request, folio):
         "s": s, "d": s.datos, "imagenes": imagenes, "fotos": sv.fotos_para_mostrar(s),
         "danos": [n.capitalize() for n in sv.lista_danos(s.datos)],
         "resumen": sv.resumen_secciones(s),
-        "cambios": s.cambios.select_related("usuario"),
+        "cambios": s.cambios.exclude(tipo=Cambio.Tipo.DESCARGA).select_related("usuario"),
+        "descargas": s.cambios.filter(tipo=Cambio.Tipo.DESCARGA).select_related("usuario")[:50]
+                     if sv.puede_revisar(request.user) else None,
         "revisor": sv.ve_todo(request.user),
         "puede_descargar": sv.puede_descargar(request.user, s),
         "puede_originales": sv.puede_descargar_originales(request.user, s),
@@ -223,9 +246,11 @@ def descargar(request, folio, archivo):
         if not p:
             messages.error(request, "No se pudo generar el PDF en este momento. Descarga el formato original e inténtalo más tarde.")
             return redirect("detalle", folio=folio)
+        sv.registrar_descarga(s, request.user, archivo)
         return FileResponse(open(p, "rb"), as_attachment=True, filename=f"{folio}_{archivo}")
     if archivo not in s.documentos():
         raise Http404
+    sv.registrar_descarga(s, request.user, archivo)
     return FileResponse(open(s.carpeta / archivo, "rb"), as_attachment=True, filename=f"{folio}_{archivo}")
 
 

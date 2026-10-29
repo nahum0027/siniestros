@@ -39,6 +39,7 @@ tr.fila:hover td{background:#f7f9fb}
     <p class="sub" style="margin:0">{% if revisor %}Todos los reportes capturados.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
+    {% if puede_liberar %}<a class="btn sec" href="{% url 'descargas' %}">Historial de descargas</a>{% endif %}
     {% if puede_liberar %}<a class="btn" href="{% url 'liberacion_nueva' %}">+ Liberación exprés</a>{% endif %}
     {% if puede_capturar %}<a class="btn pri" href="{% url 'formulario' %}">+ Capturar siniestro</a>{% endif %}
   </div>
