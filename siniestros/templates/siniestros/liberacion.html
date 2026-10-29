@@ -1,4 +1,5 @@
 {% extends "siniestros/base.html" %}
+{% load static %}
 {% block titulo %}{% if s %}Editar {{ s.folio }}{% else %}Liberación exprés{% endif %}{% endblock %}
 {% block nav_lib %}act{% endblock %}
 {% block estilos %}
@@ -151,7 +152,10 @@
     </section>
 
     <section class="card"><h2>Perito en H.T.T.</h2>
-      <p class="perito">Hugo Alberto Martínez Olvera<br>Perito en H.T.T<br>Analista del Centro de Capacitación del Personal Operativo del Transporte del Estado de Querétaro</p>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <img src="{% static 'siniestros/firma_perito_htt.png' %}" alt="Firma del perito" style="height:90px;width:auto">
+        <p class="perito" style="margin:0">Hugo Alberto Martínez Olvera<br>Perito en H.T.T<br>Analista del Centro de Capacitación del Personal Operativo del Transporte del Estado de Querétaro</p>
+      </div>
     </section>
 
     <div class="acciones">

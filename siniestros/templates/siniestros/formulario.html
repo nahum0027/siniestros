@@ -62,6 +62,8 @@ select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='
 .mini.cargando::after{content:"…";position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:var(--muted)}
 .sub-bloque{border-left:3px solid var(--bad);padding:2px 0 2px 12px;margin:-2px 0 12px}
 .sub-bloque.na{border-left-color:var(--pri)}
+.firma-fija{border:1.5px solid var(--line);border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;padding:8px;height:130px;overflow:hidden}
+.firma-fija img{display:block;height:112px;width:auto;max-width:100%;object-fit:contain}
 .seg.seg-col{flex-direction:column}
 .seg.seg-col span{justify-content:flex-start;padding:6px 14px}
 input:focus,select,textarea:focus{outline:none}
@@ -425,9 +427,9 @@ footer .btn{flex:1;max-width:340px}
       <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_agente">Borrar firma</button></div>
     </fieldset>
     <fieldset><legend>Perito HTT</legend>
-      <div class="campo"><label>Nombre</label><input type="text" name="perito_nombre" autocapitalize="words"></div>
-      <div class="lienzo firma"><div class="linea"></div><canvas data-firma="firma_perito" width="900" height="300"></canvas></div>
-      <div class="herr"><button type="button" class="btn peq quitar" data-borrar="firma_perito">Borrar firma</button></div>
+      <div class="campo"><label>Nombre</label><input type="text" name="perito_nombre" autocapitalize="words" placeholder="Hugo Alberto Martínez Olvera"></div>
+      <div class="firma-fija"><img src="/static/siniestros/firma_perito_htt.png" alt="Firma del perito"></div>
+      <p class="ayuda" style="margin:6px 0 0">Si el nombre se deja vacío, va Hugo Alberto Martínez Olvera con su firma.</p>
     </fieldset>
   </section>
 

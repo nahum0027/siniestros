@@ -246,6 +246,12 @@ def regenerar_documentos(siniestro):
         datos["aplica_convenio"] = False
     for nombre in IMAGENES:
         datos[nombre] = ruta_imagen(siniestro, nombre)
+    # Perito en H.T.T.: si no capturaron otro, va el predeterminado con su firma
+    from .generar import FIRMA_PERITO, PERITO_HTT
+    if not (datos.get("perito_nombre") or "").strip():
+        datos["perito_nombre"] = PERITO_HTT
+    if not datos.get("firma_perito") and _mismo_nombre(datos["perito_nombre"], PERITO_HTT) and FIRMA_PERITO.exists():
+        datos["firma_perito"] = FIRMA_PERITO
     # se borran los formatos anteriores (p. ej. si ya no aplica convenio)
     for viejo in siniestro.carpeta.glob("*.*"):
         if viejo.suffix in (".docx", ".xlsx", ".pdf"):
@@ -406,6 +412,12 @@ def resumen_secciones(s):
     secciones.append(("GENERALIDADES", gen))
     secciones.append(("REDACCIÓN DE HECHOS", [("", v(d.get("narrativa")))]))
     return secciones
+
+
+def _mismo_nombre(a, b):
+    import unicodedata
+    n = lambda x: " ".join(unicodedata.normalize("NFKD", x or "").encode("ascii", "ignore").decode().upper().split())
+    return n(a) == n(b)
 
 
 def regenerar_liberacion(siniestro):

@@ -17,9 +17,13 @@ from openpyxl import load_workbook
 from openpyxl.cell.rich_text import CellRichText, TextBlock
 from openpyxl.cell.text import InlineFont
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.styles import PatternFill, Font, Alignment
 
 PLANTILLAS = Path(__file__).resolve().parent / "plantillas"
+# Perito en H.T.T. y su firma predeterminada (liberación exprés y hecho de tránsito)
+PERITO_HTT = "Hugo Alberto Martínez Olvera"
+FIRMA_PERITO = PLANTILLAS / "firma_perito_htt.png"
 
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
          "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
@@ -227,7 +231,13 @@ def llenar_htt(datos, salida):
     for k, coord in FIRMAS.items():
         if datos.get(k):
             img = XLImage(datos[k])
-            img.width, img.height = 130, 38  # px, cabe en el renglón de firma
+            if img.width and img.height and img.height > img.width * 0.6:  # firma "alta" (p. ej. la del perito)
+                img.width, img.height = round(46 * img.width / img.height), 46  # sin deformarla
+                # angosta: se pone a la mitad del recuadro (10 columnas) para que quede centrada
+                col, fila = re.match(r"([A-Z]+)(\d+)", coord).groups()
+                coord = f"{get_column_letter(column_index_from_string(col) + 5)}{fila}"
+            else:
+                img.width, img.height = 130, 38  # px, cabe en el renglón de firma
             ws.add_image(img, coord)
 
     ruta = Path(salida) / "hecho_transito.xlsx"
@@ -253,6 +263,7 @@ def llenar_liberacion(datos, salida):
         "activa_seguro", "motivo_activacion", "causal", "pase_medico", "generalidades")}
     ctx["fecha"] = f.strftime("%d.%m.%Y") if f else ""
     ctx["firma_ejecutivo"] = _img(doc, datos.get("firma_ejecutivo"), 45)
+    ctx["firma_perito"] = _img(doc, FIRMA_PERITO if FIRMA_PERITO.exists() else None, alto_mm=20)
     doc.render(ctx)
     ruta = Path(salida) / "reporte_ejecutivo.docx"
     doc.save(ruta)

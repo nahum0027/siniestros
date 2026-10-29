@@ -1,9 +1,9 @@
 // Guarda el formulario de captura en el teléfono para que abra aunque no haya señal.
 // Solo se guardan la pantalla de captura y los archivos estáticos; los reportes
 // de la plataforma siempre se piden al servidor (no se dejan copias en el teléfono).
-const CACHE = "siniestros-v3";
+const CACHE = "siniestros-v4";
 const BASICOS = ["/manifest.json", "/static/siniestros/icon-192.png", "/static/siniestros/icon-512.png",
-                 "/static/siniestros/logo-blanco.png"];
+                 "/static/siniestros/logo-blanco.png", "/static/siniestros/firma_perito_htt.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASICOS)).then(() => self.skipWaiting()));
