@@ -35,7 +35,7 @@ COLISIONES = [(n.upper(), n) for n in (
     "Atropello", "Caída de persona", "Choque con móvil de vehículo", "Choques diversos")]
 
 # Liberación exprés: a dónde se envía la unidad liberada
-DESTINOS_LIB = [("MANTENIMIENTO", "Mantenimiento"), ("VÍA LÁCTEA", "Vía Láctea"), ("PATIO LA NACIÓN", "Patio La Nación")]
+DESTINOS_LIB = [("CONTINÚA EN RUTA", "Continúa en ruta"), ("MANTENIMIENTO", "Mantenimiento"), ("VÍA LÁCTEA", "Vía Láctea"), ("PATIO LA NACIÓN", "Patio La Nación")]
 
 DANOS = (("danos_cristal", "CRISTAL"), ("danos_carroceria", "CARROCERÍA"), ("danos_retrovisor", "RETROVISOR"), ("danos_rack", "RACK"))
 
