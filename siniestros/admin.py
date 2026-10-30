@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Cambio, Siniestro
+from .models import Cambio, ReporteBorrado, Siniestro
 
 
 class CambioInline(admin.TabularInline):
@@ -88,3 +88,21 @@ class UsuarioAdmin(UserAdmin):
     def get_inline_instances(self, request, obj=None):
         # Al crear el usuario, el perfil lo crea la señal (obligado a cambiar contraseña)
         return super().get_inline_instances(request, obj) if obj else []
+
+
+@admin.register(ReporteBorrado)
+class ReporteBorradoAdmin(admin.ModelAdmin):
+    list_display = ("folio", "tipo", "ejecutivo", "fecha_hecho", "borrado_por", "borrado_en", "motivo")
+    list_filter = ("tipo", "borrado_en")
+    search_fields = ("folio", "ejecutivo", "motivo", "borrado_por__username")
+    readonly_fields = ("folio", "tipo", "ejecutivo", "fecha_hecho", "capturado_por", "creado", "datos",
+                       "motivo", "borrado_por", "borrado_en")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

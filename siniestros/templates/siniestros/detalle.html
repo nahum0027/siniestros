@@ -42,6 +42,11 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 .hist>li.ESTADO::before{background:var(--ok)}
 .hist>li.CORREO::before{background:#9fb0bd}
 .hist .quien{font-weight:650}
+.zona-peligro{border:1.5px solid var(--bad-soft)}
+.zona-peligro h2{color:var(--bad)!important}
+.form-borrar{display:flex;flex-direction:column;gap:8px}
+.form-borrar input{width:100%}
+.form-borrar .btn[disabled]{opacity:.45;cursor:not-allowed}
 .desc{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:14px}
 .desc:last-child{border:0}
 .desc .cuando{color:var(--muted);font-size:13px;white-space:nowrap}
@@ -210,6 +215,17 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
     </div></section>
     {% endif %}
 
+    {% if puede_borrar %}
+    <section class="card zona-peligro"><h2>Borrar reporte</h2>
+      <p style="margin:0 0 10px;color:var(--muted);font-size:14px">Se borran definitivamente los datos, formatos, fotos e historial. No se puede deshacer. Queda constancia de quién lo borró y por qué.</p>
+      <form method="post" action="{% url 'borrar' s.folio %}" class="form-borrar">{% csrf_token %}
+        <input name="motivo" placeholder="Motivo (obligatorio)" required maxlength="250">
+        <input name="confirmar_folio" placeholder="Escribe el folio para confirmar: {{ s.folio }}" required autocomplete="off" spellcheck="false" data-folio="{{ s.folio }}">
+        <button class="btn bad" type="submit" disabled>Borrar reporte</button>
+      </form>
+    </section>
+    {% endif %}
+
     {% if puede_reabrir %}
     <section class="card"><h2>Reabrir</h2>
       <p style="margin:0;color:var(--muted);font-size:14px">Solo si hay que corregir algo después de validado. Queda en el historial.</p>
@@ -292,6 +308,16 @@ document.querySelectorAll("a[data-pdf]").forEach(a => a.addEventListener("click"
     a.download = `${folio}_resumen.txt`; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
+})();
+</script>
+<script>
+// borrar: el botón se habilita solo cuando el folio escrito coincide
+(() => {
+  const f = document.querySelector(".form-borrar"); if (!f) return;
+  const inp = f.querySelector("[data-folio]"), btn = f.querySelector("button"), mot = f.querySelector("[name=motivo]");
+  const revisar = () => { btn.disabled = !(inp.value.trim().toUpperCase() === inp.dataset.folio.toUpperCase() && mot.value.trim()); };
+  inp.addEventListener("input", revisar); mot.addEventListener("input", revisar);
+  f.addEventListener("submit", e => { if (!confirm("¿Borrar definitivamente " + inp.dataset.folio + "? No se puede deshacer.")) e.preventDefault(); });
 })();
 </script>
 {% endblock %}

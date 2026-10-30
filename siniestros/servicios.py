@@ -510,6 +510,24 @@ def puede_ver(user, siniestro):
     return ve_todo(user) or siniestro.capturado_por_id == user.id
 
 
+def borrar_reporte(siniestro, user, motivo):
+    """Deja constancia en ReporteBorrado y borra el reporte, su historial y su carpeta de archivos."""
+    import shutil
+    from django.db import transaction
+    from .models import ReporteBorrado
+    cap = siniestro.capturado_por
+    carpeta = siniestro.carpeta
+    with transaction.atomic():
+        ReporteBorrado.objects.create(
+            folio=siniestro.folio, tipo=siniestro.tipo, ejecutivo=siniestro.ejecutivo,
+            fecha_hecho=siniestro.fecha_hecho, creado=siniestro.creado, datos=siniestro.datos,
+            capturado_por=(cap.get_full_name() or cap.username) if cap else "",
+            motivo=motivo[:250], borrado_por=user)
+        siniestro.delete()  # el historial (Cambio) se borra en cascada
+    shutil.rmtree(carpeta, ignore_errors=True)
+    log.warning("Reporte %s borrado por %s: %s", siniestro.folio, user, motivo)
+
+
 def registrar_descarga(siniestro, user, archivo):
     """Deja constancia de quién descargó qué formato (se ve en el detalle y en Descargas)."""
     Cambio.objects.create(siniestro=siniestro, usuario=user, tipo=Cambio.Tipo.DESCARGA,

@@ -47,6 +47,7 @@ class Siniestro(models.Model):
             ("consultar_siniestro", "Puede consultar todos los reportes (solo lectura)"),
             ("descargar_formatos", "Puede descargar los formatos llenos en PDF"),
             ("descargar_originales", "Puede descargar los formatos editables (Word y Excel)"),
+            ("borrar_siniestro", "Puede borrar reportes (definitivo)"),
         ]
 
     def __str__(self):
@@ -128,3 +129,25 @@ class Perfil(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.usuario}"
+
+
+class ReporteBorrado(models.Model):
+    """Constancia de cada reporte borrado: quién, cuándo, por qué y qué contenía."""
+    folio = models.CharField(max_length=40, db_index=True)
+    tipo = models.CharField(max_length=10)
+    ejecutivo = models.CharField(max_length=150, blank=True)
+    fecha_hecho = models.DateField(null=True, blank=True)
+    capturado_por = models.CharField(max_length=150, blank=True)
+    creado = models.DateTimeField(null=True, blank=True, help_text="Cuándo se había capturado")
+    datos = models.JSONField(default=dict, blank=True, help_text="Copia de lo capturado (sin imágenes ni archivos)")
+    motivo = models.CharField(max_length=250)
+    borrado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="reportes_borrados")
+    borrado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-borrado_en"]
+        verbose_name = "reporte borrado"
+        verbose_name_plural = "reportes borrados"
+
+    def __str__(self):
+        return f"{self.folio} (borrado {self.borrado_en:%d/%m/%Y %H:%M})"

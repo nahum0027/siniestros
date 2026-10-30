@@ -206,6 +206,7 @@ def detalle(request, folio):
         "puede_originales": sv.puede_descargar_originales(request.user, s),
         "puede_editar": sv.puede_editar(request.user, s),
         "puede_reabrir": request.user.has_perm("siniestros.reabrir_siniestro") and s.bloqueado,
+        "puede_borrar": request.user.has_perm("siniestros.borrar_siniestro"),
         "guardado": request.GET.get("guardado"), "sin_cambios": request.GET.get("sin_cambios"),
     })
 
@@ -306,6 +307,22 @@ def guardar_edicion(request, folio):
         Cambio.objects.create(siniestro=s, usuario=request.user, tipo=Cambio.Tipo.EDITADO,
                               descripcion=f"{len(cambios)} campo(s) corregido(s)", detalle=cambios)
     return JsonResponse({"ok": True, "cambios": len(cambios), "url_reporte": f"/reportes/{s.folio}/"})
+
+
+@login_required
+@require_POST
+def borrar(request, folio):
+    """Borra un reporte por completo (datos, historial y archivos). Solo con permiso explícito."""
+    s = get_object_or_404(Siniestro.objects.select_related("capturado_por"), folio=folio)
+    if not request.user.has_perm("siniestros.borrar_siniestro"):
+        raise PermissionDenied
+    motivo = request.POST.get("motivo", "").strip()
+    if not motivo or request.POST.get("confirmar_folio", "").strip().upper() != s.folio.upper():
+        messages.error(request, "Para borrar escribe el motivo y el folio exactamente como aparece.")
+        return redirect("detalle", folio=folio)
+    sv.borrar_reporte(s, request.user, motivo)
+    messages.success(request, f"Se borró el reporte {folio}.")
+    return redirect("lista")
 
 
 @login_required
