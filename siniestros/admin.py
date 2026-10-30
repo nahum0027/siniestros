@@ -92,7 +92,7 @@ class UsuarioAdmin(UserAdmin):
 
 @admin.register(ReporteBorrado)
 class ReporteBorradoAdmin(admin.ModelAdmin):
-    list_display = ("folio", "tipo", "ejecutivo", "fecha_hecho", "borrado_por", "borrado_en", "motivo")
+    list_display = ("folio", "tipo", "ejecutivo", "fecha_hecho", "borrado_por", "borrado_en")
     list_filter = ("tipo", "borrado_en")
     search_fields = ("folio", "ejecutivo", "motivo", "borrado_por__username")
     readonly_fields = ("folio", "tipo", "ejecutivo", "fecha_hecho", "capturado_por", "creado", "datos",

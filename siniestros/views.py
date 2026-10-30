@@ -316,11 +316,7 @@ def borrar(request, folio):
     s = get_object_or_404(Siniestro.objects.select_related("capturado_por"), folio=folio)
     if not request.user.has_perm("siniestros.borrar_siniestro"):
         raise PermissionDenied
-    motivo = request.POST.get("motivo", "").strip()
-    if not motivo or request.POST.get("confirmar_folio", "").strip().upper() != s.folio.upper():
-        messages.error(request, "Para borrar escribe el motivo y el folio exactamente como aparece.")
-        return redirect("detalle", folio=folio)
-    sv.borrar_reporte(s, request.user, motivo)
+    sv.borrar_reporte(s, request.user, "")
     messages.success(request, f"Se borró el reporte {folio}.")
     return redirect("lista")
 

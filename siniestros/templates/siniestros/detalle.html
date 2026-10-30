@@ -217,11 +217,9 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
 
     {% if puede_borrar %}
     <section class="card zona-peligro"><h2>Borrar reporte</h2>
-      <p style="margin:0 0 10px;color:var(--muted);font-size:14px">Se borran definitivamente los datos, formatos, fotos e historial. No se puede deshacer. Queda constancia de quién lo borró y por qué.</p>
-      <form method="post" action="{% url 'borrar' s.folio %}" class="form-borrar">{% csrf_token %}
-        <input name="motivo" placeholder="Motivo (obligatorio)" required maxlength="250">
-        <input name="confirmar_folio" placeholder="Escribe el folio para confirmar: {{ s.folio }}" required autocomplete="off" spellcheck="false" data-folio="{{ s.folio }}">
-        <button class="btn bad" type="submit" disabled>Borrar reporte</button>
+      <p style="margin:0 0 10px;color:var(--muted);font-size:14px">Se borran definitivamente los datos, formatos, fotos e historial. No se puede deshacer.</p>
+      <form method="post" action="{% url 'borrar' s.folio %}" class="form-borrar" data-folio="{{ s.folio }}">{% csrf_token %}
+        <button class="btn bad" type="submit">Borrar reporte</button>
       </form>
     </section>
     {% endif %}
@@ -311,13 +309,10 @@ document.querySelectorAll("a[data-pdf]").forEach(a => a.addEventListener("click"
 })();
 </script>
 <script>
-// borrar: el botón se habilita solo cuando el folio escrito coincide
+// borrar: solo pide confirmar
 (() => {
   const f = document.querySelector(".form-borrar"); if (!f) return;
-  const inp = f.querySelector("[data-folio]"), btn = f.querySelector("button"), mot = f.querySelector("[name=motivo]");
-  const revisar = () => { btn.disabled = !(inp.value.trim().toUpperCase() === inp.dataset.folio.toUpperCase() && mot.value.trim()); };
-  inp.addEventListener("input", revisar); mot.addEventListener("input", revisar);
-  f.addEventListener("submit", e => { if (!confirm("¿Borrar definitivamente " + inp.dataset.folio + "? No se puede deshacer.")) e.preventDefault(); });
+  f.addEventListener("submit", e => { if (!confirm("¿Borrar definitivamente " + f.dataset.folio + "? No se puede deshacer.")) e.preventDefault(); });
 })();
 </script>
 {% endblock %}
