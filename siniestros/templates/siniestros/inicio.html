@@ -57,7 +57,7 @@
   <a class="mod m-rep" href="{% url 'lista' %}">
     <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></span>
     <h2>{% if revisor %}Reportes{% else %}Mis reportes{% endif %}</h2>
-    <p>{% if puede_liberar %}Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.{% else %}Consulta y busca siniestros y liberaciones. Descarga los formatos en Word, Excel o PDF.{% endif %}</p>
+    <p>{% if puede_validar %}Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.{% elif puede_liberar %}Consulta, busca y corrige liberaciones exprés. Descarga los formatos.{% else %}Consulta y busca siniestros y liberaciones. Descarga los formatos en Word, Excel o PDF.{% endif %}</p>
     <div class="pie"><span class="dato"><b>{{ total }}</b> en total</span><span class="ir">Ver →</span></div>
   </a>
 </div>

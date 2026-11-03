@@ -57,17 +57,24 @@ def _cfg_usuario(user):
 def inicio(request):
     """Pantalla de inicio con los módulos. Los agentes de campo (un solo módulo) van directo a capturar."""
     u = request.user
-    puede_capturar, revisor = u.has_perm("siniestros.capturar_siniestro"), sv.ve_todo(u)
-    if puede_capturar and not revisor:
+    puede_capturar, revisor, lib = u.has_perm("siniestros.capturar_siniestro"), sv.ve_todo(u), sv.puede_liberar(u)
+    if puede_capturar and not revisor and not lib:
         return redirect("formulario")
-    if not sv.puede_revisar(u):  # rol Consulta: solo tiene el apartado de reportes
+    if not sv.puede_revisar(u) and not lib:  # rol Consulta: solo tiene el apartado de reportes
         return redirect("lista")
-    base = Siniestro.objects.all() if revisor else Siniestro.objects.filter(capturado_por=u)
+    if revisor:
+        base = Siniestro.objects.all()
+    elif lib:  # rol Liberación exprés: todas las liberaciones (y lo que haya capturado)
+        base = Siniestro.objects.filter(Q(tipo=Siniestro.Tipo.LIBERACION) | Q(capturado_por=u))
+        revisor = True
+    else:
+        base = Siniestro.objects.filter(capturado_por=u)
     pendientes = [Siniestro.Estado.ENVIADO, Siniestro.Estado.REVISION]
     hoy = timezone.localdate()
     S, L = Siniestro.Tipo.SINIESTRO, Siniestro.Tipo.LIBERACION
     return render(request, "siniestros/inicio.html", {
-        "puede_capturar": puede_capturar, "revisor": revisor, "puede_liberar": sv.puede_revisar(u),
+        "puede_capturar": puede_capturar, "revisor": revisor, "puede_liberar": lib,
+        "puede_validar": sv.puede_revisar(u),
         "sin_pend": base.filter(tipo=S, estado__in=pendientes).count(),
         "sin_hoy": base.filter(tipo=S, creado__date=hoy).count(),
         "lib_pend": base.filter(tipo=L, estado__in=pendientes).count(),
@@ -136,8 +143,14 @@ def _respuesta(request, s):
 def lista(request):
     qs = Siniestro.objects.select_related("capturado_por")
     revisor = sv.ve_todo(request.user)  # en la lista, "revisor" = ve todos los reportes
-    if not revisor:
-        qs = qs.filter(capturado_por=request.user)
+    solo_lib = sv.solo_liberaciones(request.user)
+    filtro_base = Q()
+    if solo_lib:
+        filtro_base = Q(tipo=Siniestro.Tipo.LIBERACION) | Q(capturado_por=request.user)
+        revisor = True
+    elif not revisor:
+        filtro_base = Q(capturado_por=request.user)
+    qs = qs.filter(filtro_base)
     q = request.GET.get("q", "").strip()
     if q:
         qs = qs.filter(Q(folio__icontains=q) | Q(ruta__icontains=q) | Q(economico__icontains=q)
@@ -155,7 +168,7 @@ def lista(request):
         qs = qs.filter(fecha_hecho__lte=hasta)
 
     pagina = Paginator(qs, 25).get_page(request.GET.get("p"))
-    base = Siniestro.objects.all() if revisor else Siniestro.objects.filter(capturado_por=request.user)
+    base = Siniestro.objects.filter(filtro_base)
     cortos = {"ENVIADO": "Por revisar", "REVISION": "En revisión", "VALIDADO": "Validados"}
     estados = [(e, cortos[e], base.filter(estado=e).count()) for e in Siniestro.Estado.values]
     return render(request, "siniestros/lista.html", {
@@ -163,7 +176,8 @@ def lista(request):
         "estados": estados, "total": base.count(), "revisor": revisor, "tipo": tipo,
         "tipos": [(t, n, base.filter(tipo=t).count()) for t, n in (("SINIESTRO", "Siniestros"), ("LIBERACION", "Liberaciones exprés"))],
         "puede_capturar": request.user.has_perm("siniestros.capturar_siniestro"),
-        "puede_liberar": sv.puede_revisar(request.user),
+        "puede_liberar": sv.puede_liberar(request.user),
+        "puede_revisar": sv.puede_revisar(request.user), "solo_lib": solo_lib,
     })
 
 
@@ -205,6 +219,7 @@ def detalle(request, folio):
         "puede_descargar": sv.puede_descargar(request.user, s),
         "puede_originales": sv.puede_descargar_originales(request.user, s),
         "puede_editar": sv.puede_editar(request.user, s),
+        "puede_validar": sv.puede_validar(request.user, s),
         "puede_reabrir": request.user.has_perm("siniestros.reabrir_siniestro") and s.bloqueado,
         "puede_borrar": request.user.has_perm("siniestros.borrar_siniestro"),
         "guardado": request.GET.get("guardado"), "sin_cambios": request.GET.get("sin_cambios"),
@@ -326,12 +341,12 @@ def borrar(request, folio):
 def cambiar_estado(request, folio):
     s = get_object_or_404(Siniestro, folio=folio)
     accion = request.POST.get("accion")
-    if accion == "validar" and sv.puede_editar(request.user, s):
+    if accion == "validar" and sv.puede_validar(request.user, s):
         s.estado, s.validado_por, s.validado_en = Siniestro.Estado.VALIDADO, request.user, timezone.now()
         s.save()
         Cambio.objects.create(siniestro=s, usuario=request.user, tipo=Cambio.Tipo.ESTADO, descripcion="Validado (bloqueado)")
         messages.success(request, "Reporte validado. Ya no se puede editar.")
-    elif accion == "revision" and sv.puede_editar(request.user, s) and s.estado == Siniestro.Estado.ENVIADO:
+    elif accion == "revision" and sv.puede_validar(request.user, s) and s.estado == Siniestro.Estado.ENVIADO:
         s.estado = Siniestro.Estado.REVISION
         s.save()
         Cambio.objects.create(siniestro=s, usuario=request.user, tipo=Cambio.Tipo.ESTADO, descripcion="Tomado en revisión")
@@ -407,7 +422,7 @@ OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)"}
 @login_required
 def liberacion(request, folio=None):
     """Alta (sin folio) y edición (con folio) de una liberación exprés."""
-    if not sv.puede_revisar(request.user):
+    if not sv.puede_liberar(request.user):
         raise PermissionDenied
     s = None
     if folio:

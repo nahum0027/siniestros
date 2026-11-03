@@ -506,8 +506,24 @@ def ve_todo(user):
     return puede_revisar(user) or user.has_perm("siniestros.consultar_siniestro")
 
 
+def puede_liberar(user):
+    """Captura y corrige liberaciones exprés (revisores, administradores y el rol Liberación exprés)."""
+    return puede_revisar(user) or user.has_perm("siniestros.capturar_liberacion")
+
+
+def solo_liberaciones(user):
+    """Rol Liberación exprés: trabaja con liberaciones pero no ve todos los siniestros."""
+    return user.has_perm("siniestros.capturar_liberacion") and not ve_todo(user)
+
+
 def puede_ver(user, siniestro):
-    return ve_todo(user) or siniestro.capturado_por_id == user.id
+    return (ve_todo(user) or siniestro.capturado_por_id == user.id
+            or (siniestro.es_liberacion and user.has_perm("siniestros.capturar_liberacion")))
+
+
+def puede_validar(user, siniestro):
+    """Validar (bloquear) sigue siendo solo de revisores y administradores."""
+    return puede_revisar(user) and not siniestro.bloqueado
 
 
 def borrar_reporte(siniestro, user, motivo):
@@ -589,4 +605,6 @@ def pdf_de(siniestro, archivo):
 
 
 def puede_editar(user, siniestro):
-    return puede_revisar(user) and not siniestro.bloqueado
+    if siniestro.bloqueado:
+        return False
+    return puede_revisar(user) or (siniestro.es_liberacion and user.has_perm("siniestros.capturar_liberacion"))

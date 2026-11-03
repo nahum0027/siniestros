@@ -35,17 +35,17 @@ tr.fila:hover td{background:#f7f9fb}
 {% block contenido %}
 <div class="cab">
   <div>
-    <h1>{% if revisor %}Reportes de siniestros{% else %}Mis reportes{% endif %}</h1>
-    <p class="sub" style="margin:0">{% if revisor %}Todos los reportes capturados.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
+    <h1>{% if solo_lib %}Liberaciones exprés{% elif revisor %}Reportes de siniestros{% else %}Mis reportes{% endif %}</h1>
+    <p class="sub" style="margin:0">{% if solo_lib %}Todas las liberaciones exprés capturadas.{% elif revisor %}Todos los reportes capturados.{% else %}Los reportes que tú enviaste. Si ves un error, avisa a tu supervisor para que lo corrija.{% endif %}</p>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    {% if puede_liberar %}<a class="btn sec" href="{% url 'descargas' %}">Historial de descargas</a>{% endif %}
+    {% if puede_revisar %}<a class="btn sec" href="{% url 'descargas' %}">Historial de descargas</a>{% endif %}
     {% if puede_liberar %}<a class="btn" href="{% url 'liberacion_nueva' %}">+ Liberación exprés</a>{% endif %}
     {% if puede_capturar %}<a class="btn pri" href="{% url 'formulario' %}">+ Capturar siniestro</a>{% endif %}
   </div>
 </div>
 
-{% if revisor %}
+{% if revisor and not solo_lib %}
 <div class="chips">
   <a class="chip {% if not tipo %}act{% endif %}" href="?estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">Todos los tipos</a>
   {% for valor, nombre, n in tipos %}<a class="chip {% if tipo == valor %}act{% endif %}" href="?tipo={{ valor }}&estado={{ estado }}&q={{ q|urlencode }}&desde={{ desde }}&hasta={{ hasta }}">{{ nombre }} <b>{{ n }}</b></a>{% endfor %}

@@ -4,9 +4,12 @@ from django.db.models.signals import post_migrate
 # Roles de la plataforma -> permisos que tiene cada uno
 ROLES = {
     "Agente de campo": ["capturar_siniestro"],
-    "Revisor": ["capturar_siniestro", "revisar_siniestro", "descargar_formatos", "descargar_originales"],
-    "Administrador de siniestros": ["capturar_siniestro", "revisar_siniestro", "reabrir_siniestro",
+    "Revisor": ["capturar_siniestro", "revisar_siniestro", "capturar_liberacion",
+                "descargar_formatos", "descargar_originales"],
+    "Administrador de siniestros": ["capturar_siniestro", "revisar_siniestro", "reabrir_siniestro", "capturar_liberacion",
                                     "descargar_formatos", "descargar_originales"],
+    # solo liberaciones exprés: ve todas, las captura y corrige; no ve siniestros de campo ni valida
+    "Liberación exprés": ["capturar_liberacion", "descargar_formatos", "descargar_originales"],
     # ve todos los reportes y descarga los formatos solo en PDF; no captura, no edita, no valida
     "Consulta": ["consultar_siniestro", "descargar_formatos"],
 }

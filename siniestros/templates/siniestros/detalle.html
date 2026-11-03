@@ -73,9 +73,9 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
   <div class="acciones">
     {% if puede_editar %}
       <a class="btn pri" href="{% url 'editar' s.folio %}">Editar / corregir</a>
-      <form method="post" action="{% url 'estado' s.folio %}" onsubmit="return confirm('Al validar, el reporte queda bloqueado y ya no se puede editar. ¿Continuar?')">{% csrf_token %}
+      {% if puede_validar %}<form method="post" action="{% url 'estado' s.folio %}" onsubmit="return confirm('Al validar, el reporte queda bloqueado y ya no se puede editar. ¿Continuar?')">{% csrf_token %}
         <input type="hidden" name="accion" value="validar"><button class="btn ok" type="submit">Validar</button>
-      </form>
+      </form>{% endif %}
     {% elif s.bloqueado %}
       <span class="msg success" style="margin:0;padding:8px 12px">🔒 Validado por {{ s.validado_por.get_full_name|default:s.validado_por.username }} el {{ s.validado_en|date:"d/m/Y H:i" }}</span>
     {% endif %}
