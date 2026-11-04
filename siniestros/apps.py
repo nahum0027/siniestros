@@ -3,7 +3,7 @@ from django.db.models.signals import post_migrate
 
 # Roles de la plataforma -> permisos que tiene cada uno
 ROLES = {
-    "Agente de campo": ["capturar_siniestro"],
+    "Agente de campo": ["capturar_siniestro", "llenar_liberacion"],
     "Revisor": ["capturar_siniestro", "revisar_siniestro", "capturar_liberacion",
                 "descargar_formatos", "descargar_originales"],
     "Administrador de siniestros": ["capturar_siniestro", "revisar_siniestro", "reabrir_siniestro", "capturar_liberacion",

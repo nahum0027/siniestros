@@ -511,6 +511,11 @@ def puede_liberar(user):
     return puede_revisar(user) or user.has_perm("siniestros.capturar_liberacion")
 
 
+def puede_llenar_liberacion(user):
+    """Crear una liberación exprés nueva. Los agentes solo la llenan: no la corrigen ni ven las de otros."""
+    return puede_liberar(user) or user.has_perm("siniestros.llenar_liberacion")
+
+
 def solo_liberaciones(user):
     """Rol Liberación exprés: trabaja con liberaciones pero no ve todos los siniestros."""
     return user.has_perm("siniestros.capturar_liberacion") and not ve_todo(user)

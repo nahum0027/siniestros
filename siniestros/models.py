@@ -49,6 +49,7 @@ class Siniestro(models.Model):
             ("descargar_originales", "Puede descargar los formatos editables (Word y Excel)"),
             ("borrar_siniestro", "Puede borrar reportes (definitivo)"),
             ("capturar_liberacion", "Puede capturar y corregir liberaciones exprés"),
+            ("llenar_liberacion", "Puede llenar liberaciones exprés (solo crear, sin corregir)"),
         ]
 
     def __str__(self):

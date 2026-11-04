@@ -49,6 +49,7 @@ def _cfg_usuario(user):
         "usuario": user.username,
         "nombre": user.get_full_name() or user.username,
         "puede_revisar": sv.puede_revisar(user),
+        "ir_inicio": sv.puede_revisar(user) or sv.puede_llenar_liberacion(user),
     }
 
 
@@ -58,9 +59,10 @@ def inicio(request):
     """Pantalla de inicio con los módulos. Los agentes de campo (un solo módulo) van directo a capturar."""
     u = request.user
     puede_capturar, revisor, lib = u.has_perm("siniestros.capturar_siniestro"), sv.ve_todo(u), sv.puede_liberar(u)
-    if puede_capturar and not revisor and not lib:
+    llenar_lib = sv.puede_llenar_liberacion(u)
+    if puede_capturar and not revisor and not llenar_lib:
         return redirect("formulario")
-    if not sv.puede_revisar(u) and not lib:  # rol Consulta: solo tiene el apartado de reportes
+    if not sv.puede_revisar(u) and not llenar_lib:  # rol Consulta: solo tiene el apartado de reportes
         return redirect("lista")
     if revisor:
         base = Siniestro.objects.all()
@@ -73,7 +75,7 @@ def inicio(request):
     hoy = timezone.localdate()
     S, L = Siniestro.Tipo.SINIESTRO, Siniestro.Tipo.LIBERACION
     return render(request, "siniestros/inicio.html", {
-        "puede_capturar": puede_capturar, "revisor": revisor, "puede_liberar": lib,
+        "puede_capturar": puede_capturar, "revisor": revisor, "puede_liberar": lib, "llenar_lib": llenar_lib,
         "puede_validar": sv.puede_revisar(u),
         "sin_pend": base.filter(tipo=S, estado__in=pendientes).count(),
         "sin_hoy": base.filter(tipo=S, creado__date=hoy).count(),
@@ -176,7 +178,7 @@ def lista(request):
         "estados": estados, "total": base.count(), "revisor": revisor, "tipo": tipo,
         "tipos": [(t, n, base.filter(tipo=t).count()) for t, n in (("SINIESTRO", "Siniestros"), ("LIBERACION", "Liberaciones exprés"))],
         "puede_capturar": request.user.has_perm("siniestros.capturar_siniestro"),
-        "puede_liberar": sv.puede_liberar(request.user),
+        "puede_liberar": sv.puede_llenar_liberacion(request.user),
         "puede_revisar": sv.puede_revisar(request.user), "solo_lib": solo_lib,
     })
 
@@ -422,7 +424,8 @@ OBLIGATORIOS_LIB = {"fecha": "Fecha", "ejecutivo": "Ejecutivo(a)"}
 @login_required
 def liberacion(request, folio=None):
     """Alta (sin folio) y edición (con folio) de una liberación exprés."""
-    if not sv.puede_liberar(request.user):
+    # llenar una nueva: también los agentes de campo; corregir: solo quien tiene capturar_liberacion o revisa
+    if not (sv.puede_liberar(request.user) if folio else sv.puede_llenar_liberacion(request.user)):
         raise PermissionDenied
     s = None
     if folio:

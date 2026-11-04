@@ -46,7 +46,7 @@
     <div class="pie">{% if revisor %}<span class="dato"><b>{{ sin_pend }}</b> por revisar</span>{% endif %}<span class="dato"><b>{{ sin_hoy }}</b> hoy</span><span class="ir">Abrir →</span></div>
   </a>
   {% endif %}
-  {% if puede_liberar %}
+  {% if llenar_lib %}
   <a class="mod m-lib" href="{% url 'liberacion_nueva' %}">
     <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/></svg></span>
     <h2>Liberación exprés</h2>
