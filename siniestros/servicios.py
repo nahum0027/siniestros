@@ -32,7 +32,7 @@ FOTOS = {
 COLISIONES = [(n.upper(), n) for n in (
     "Alcance", "Choque crucero", "Choque de frente", "Choque lateral",
     "Salida de la superficie de rodamiento", "Estrellamiento", "Volcadura", "Proyección",
-    "Atropello", "Caída de persona", "Choque con móvil de vehículo", "Choques diversos")]
+    "Atropello", "Caída de persona", "Choque con móvil de vehículo", "Choques diversos", "Daño doloso")]
 
 # Liberación exprés: a dónde se envía la unidad liberada
 DESTINOS_LIB = [("CONTINÚA EN RUTA", "Continúa en ruta"), ("MANTENIMIENTO", "Mantenimiento"), ("VÍA LÁCTEA", "Vía Láctea"), ("PATIO LA NACIÓN", "Patio La Nación")]
