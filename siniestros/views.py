@@ -88,8 +88,10 @@ def inicio(request):
 
 # ------------------------------------------------------------------ captura en campo
 @login_required
-@permission_required("siniestros.capturar_siniestro", raise_exception=True)
 def formulario(request):
+    if not request.user.has_perm("siniestros.capturar_siniestro"):
+        # "/" es la página de captura; quien no captura (Consulta, Liberación exprés) va a su inicio
+        return redirect("inicio")
     cfg = {"modo": "captura", "usuario": _cfg_usuario(request.user), "url_guardar": "/api/enviar/"}
     return render(request, "siniestros/formulario.html", {"cfg": cfg})
 
