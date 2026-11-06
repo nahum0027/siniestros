@@ -21,6 +21,9 @@ tr.fila:hover td{background:#f7f9fb}
 .tenue{color:var(--muted);font-size:13px}
 .num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .tarjetas{display:none}
+.resp{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.resp.si{background:var(--bad-soft);color:var(--bad)}
+.resp.no{background:var(--ok-soft);color:var(--ok)}
 .pag{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px}
 @media (max-width:760px){
   .filtros{grid-template-columns:1fr 1fr}
@@ -70,7 +73,7 @@ tr.fila:hover td{background:#f7f9fb}
 <div class="card" style="padding:6px 10px">
   {% if pagina.object_list %}
   <table>
-    <thead><tr><th>Folio</th><th>Fecha del hecho</th><th>Ruta / Eco.</th><th>Ejecutivo(a)</th><th>Lugar</th>{% if revisor %}<th>Capturó</th>{% endif %}<th>Estado</th></tr></thead>
+    <thead><tr><th>Folio</th><th>Fecha del hecho</th><th>Ruta / Eco.</th><th>Ejecutivo(a)</th><th>Lugar</th><th>Unidad resp.</th><th>Colisión</th>{% if revisor %}<th>Capturó</th>{% endif %}<th>Estado</th></tr></thead>
     <tbody>
     {% for s in pagina %}
       <tr class="fila" onclick="location.href='{% url 'detalle' s.folio %}'">
@@ -79,6 +82,8 @@ tr.fila:hover td{background:#f7f9fb}
         <td class="num">{{ s.ruta|default:"—" }} / {{ s.economico|default:"—" }}</td>
         <td>{{ s.ejecutivo|default:"—" }}</td>
         <td class="tenue">{{ s.lugar|truncatechars:60|default:"—" }}</td>
+        <td>{% with r=s.datos.responsable|upper %}{% if r == "SI" or r == "SÍ" %}<span class="resp si">Sí</span>{% elif r == "NO" %}<span class="resp no">No</span>{% else %}<span class="tenue">—</span>{% endif %}{% endwith %}</td>
+        <td class="tenue">{{ s.datos.colision|lower|capfirst|default:"—" }}</td>
         {% if revisor %}<td class="tenue">{{ s.capturado_por.get_full_name|default:s.capturado_por.username }}</td>{% endif %}
         <td><span class="badge {{ s.estado }}">{{ s.estado_texto }}</span></td>
       </tr>
@@ -91,6 +96,7 @@ tr.fila:hover td{background:#f7f9fb}
         <div class="l1"><span class="folio">{{ s.folio }}{% if s.es_liberacion %} <span class="tag-lib">Liberación</span>{% endif %}</span><span class="badge {{ s.estado }}">{{ s.estado_texto }}</span></div>
         <div>{{ s.ejecutivo|default:"—" }} · Ruta {{ s.ruta|default:"—" }}</div>
         <div class="tenue">{{ s.fecha_hecho|date:"d/m/Y"|default:"—" }} {{ s.datos.hora }} · {{ s.lugar|truncatechars:50 }}</div>
+        {% if s.datos.colision or s.datos.responsable %}<div class="tenue">{{ s.datos.colision|default:"Sin tipo de colisión" }}{% with r=s.datos.responsable|upper %}{% if r == "SI" or r == "SÍ" %} · <span class="resp si">Responsable</span>{% elif r == "NO" %} · <span class="resp no">No responsable</span>{% endif %}{% endwith %}</div>{% endif %}
       </a>
     {% endfor %}
   </div>
