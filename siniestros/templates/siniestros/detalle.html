@@ -243,6 +243,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
     </section>
     {% endif %}
 
+    {% if cambios is not None %}
     <section class="card"><h2>Historial</h2>
       <ul class="hist">
       {% for c in cambios %}
@@ -259,6 +260,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
       {% endfor %}
       </ul>
     </section>
+    {% endif %}
   </div>
 </div>
 <script>

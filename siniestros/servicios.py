@@ -526,6 +526,11 @@ def puede_ver(user, siniestro):
             or (siniestro.es_liberacion and user.has_perm("siniestros.capturar_liberacion")))
 
 
+def ve_historial(user):
+    """Historial de cambios/correcciones: todos menos el rol Consulta (que solo ve el resultado final)."""
+    return puede_revisar(user) or not user.has_perm("siniestros.consultar_siniestro")
+
+
 def puede_validar(user, siniestro):
     """Validar (bloquear) sigue siendo solo de revisores y administradores."""
     return puede_revisar(user) and not siniestro.bloqueado

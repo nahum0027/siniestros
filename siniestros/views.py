@@ -216,7 +216,9 @@ def detalle(request, folio):
         "s": s, "d": s.datos, "imagenes": imagenes, "fotos": sv.fotos_para_mostrar(s),
         "danos": [n.capitalize() for n in sv.lista_danos(s.datos)],
         "resumen": sv.resumen_secciones(s),
-        "cambios": s.cambios.exclude(tipo=Cambio.Tipo.DESCARGA).select_related("usuario"),
+        # el rol Consulta solo ve el reporte como quedó, sin el historial de correcciones
+        "cambios": s.cambios.exclude(tipo=Cambio.Tipo.DESCARGA).select_related("usuario")
+                   if sv.ve_historial(request.user) else None,
         "descargas": s.cambios.filter(tipo=Cambio.Tipo.DESCARGA).select_related("usuario")[:50]
                      if sv.puede_revisar(request.user) else None,
         "revisor": sv.ve_todo(request.user),
