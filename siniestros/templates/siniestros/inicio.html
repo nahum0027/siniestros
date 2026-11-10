@@ -30,6 +30,67 @@
 .rec .badge{margin-left:auto}
 @media (max-width:600px){.rec{flex-wrap:wrap;gap:4px 8px}.rec .q{flex-basis:100%;order:3;white-space:normal}}
 .tag-lib{display:inline-block;font-size:11px;font-weight:700;color:#6b3fa0;background:#f1e9fb;border-radius:999px;padding:1px 8px}
+/* ---------- tablero ---------- */
+.modulos.compactos .mod{min-height:0;padding:14px 16px;gap:6px;flex-direction:row;align-items:center;flex-wrap:wrap}
+.modulos.compactos .mod p{display:none}
+.modulos.compactos .mod .ico{width:40px;height:40px;border-radius:11px}
+.modulos.compactos .mod .ico svg{width:22px;height:22px}
+.modulos.compactos .mod h2{font-size:16px;margin:0}
+.modulos.compactos .mod .pie{margin:0 0 0 auto}
+.modulos.compactos .mod .pie .dato{display:none}
+.modulos.compactos{margin-bottom:20px}
+.tab-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.tab-cab h2{font-size:20px;margin:0;letter-spacing:0;text-transform:none;color:var(--ink)}
+.tab-cab .sub{margin:2px 0 0}
+.periodos{display:flex;gap:6px;flex-wrap:wrap}
+.periodos a{padding:6px 12px;border-radius:999px;background:#fff;border:1.5px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px}
+.periodos a.act{background:var(--pri);border-color:var(--pri);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 14px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--card);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--ink)}
+.kpi .et{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kpi .num{font-size:38px;font-weight:750;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:-.02em}
+.kpi .num small{font-size:18px;font-weight:650;color:var(--muted);margin-left:2px}
+.kpi .det{font-size:13px;color:var(--muted)}
+.kpi .det b{color:var(--ink)}
+.kpi.prin{background:var(--pri);color:#fff}
+.kpi.prin .et,.kpi.prin .det{color:rgba(255,255,255,.75)}
+.kpi.prin .num,.kpi.prin .det b{color:#fff}
+.kpi.alerta .num{color:var(--warn)}
+.kpi.resp-si .num{color:#b42318}
+.kpi.resp-no .num{color:#11735a}
+.delta{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;margin-left:4px;background:rgba(255,255,255,.18)}
+.graficas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0 0 14px}
+@media (max-width:900px){.graficas{grid-template-columns:1fr}}
+.graficas .card{margin:0}
+.graficas .ancha{grid-column:1/-1}
+.card .nota-g{font-size:12px;color:var(--muted);margin:-6px 0 10px}
+/* tendencia: barras verticales */
+.tend{display:flex;align-items:flex-end;gap:2px;height:170px;padding:8px 0 0;border-bottom:1px solid var(--line)}
+.tend .col{flex:1 1 0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative;min-width:0}
+.tend .bar{width:100%;max-width:38px;background:#1b5b86;border-radius:4px 4px 0 0;min-height:0}
+.tend .col.cero .bar{background:transparent}
+.tend .col.act .bar{background:#0f3d5e}
+.tend .col .v{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:3px;font-variant-numeric:tabular-nums}
+.tend .col.cero .v{color:transparent}
+.tend .col:hover .bar{filter:brightness(1.25)}
+.tend-eje{display:flex;gap:2px;margin-top:4px}
+.tend-eje span{flex:1 1 0;text-align:center;font-size:11px;color:var(--muted);white-space:nowrap;min-width:0}
+/* barras horizontales */
+.hb{display:grid;grid-template-columns:minmax(90px,38%) 1fr 34px;gap:6px 10px;align-items:center}
+.hb .e{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .t{height:14px;background:var(--line-2);border-radius:4px;overflow:hidden}
+.hb .t i{display:block;height:100%;background:#1b5b86;border-radius:0 4px 4px 0}
+.hb .n{font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.vacio-g{color:var(--muted);font-size:14px;padding:10px 0}
+/* unidad responsable: barra apilada */
+.apil{display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px;margin:6px 0 10px;background:var(--card)}
+.apil span{display:block;height:100%}
+.apil .si{background:#b42318}.apil .no{background:#11735a}.apil .sd{background:#c9d2d9}
+.ley{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink)}
+.ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.ley .si i{background:#b42318}.ley .no i{background:#11735a}.ley .sd i{background:#c9d2d9}
+.ley b{font-variant-numeric:tabular-nums}
 {% endblock %}
 {% block contenido %}
 <div class="saludo">
@@ -37,7 +98,7 @@
   <p class="sub" style="margin:0">{% if pendientes %}Hay <b>{{ pendientes }}</b> reporte{{ pendientes|pluralize }} pendiente{{ pendientes|pluralize }} de revisar.{% else %}No hay reportes pendientes de revisar.{% endif %}</p>
 </div>
 
-<div class="modulos">
+<div class="modulos{% if t %} compactos{% endif %}">
   {% if puede_capturar %}
   <a class="mod m-sin" href="{% url 'formulario' %}">
     <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h-1a1 1 0 0 1-1-1v-4l2-5h10l3 5h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/><path d="M5 12h13"/></svg></span>
@@ -61,6 +122,73 @@
     <div class="pie"><span class="dato"><b>{{ total }}</b> en total</span><span class="ir">Ver →</span></div>
   </a>
 </div>
+
+{% if t %}
+<section class="tablero">
+  <div class="tab-cab">
+    <div><h2>Tablero</h2><p class="sub">Reportes de {{ t.texto }} · por fecha del hecho</p></div>
+    <nav class="periodos" aria-label="Periodo">{% for v, n in t.periodos %}<a href="?periodo={{ v }}" class="{% if v == t.periodo %}act{% endif %}">{{ n }}</a>{% endfor %}</nav>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi prin">
+      <span class="et">Reportes</span>
+      <span class="num">{{ t.total }}</span>
+      <span class="det"><b>{{ t.siniestros }}</b> siniestros · <b>{{ t.liberaciones }}</b> liberaciones<br>{% if t.delta_txt %}<span class="delta">{{ t.delta_txt }}</span> vs {{ t.texto_ant }} ({{ t.anterior }}){% else %}&nbsp;{% endif %}</span>
+    </div>
+    <div class="kpi resp-si"><span class="et">Responsables</span><span class="num">{{ t.resp_si }}</span><span class="det"><b>{{ t.resp_pct }}%</b> de {{ t.con_resp }} con dato</span></div>
+    <div class="kpi resp-no"><span class="et">No responsables</span><span class="num">{{ t.resp_no }}</span><span class="det">{% if t.resp_sd %}<b>{{ t.resp_sd }}</b> sin dato{% else %}&nbsp;{% endif %}</span></div>
+    <div class="kpi"><span class="et">Causal: no dimensionar</span><span class="num">{{ t.no_dimensionar }}</span><span class="det">reporte{{ t.no_dimensionar|pluralize }} con esa causal</span></div>
+    <div class="kpi"><span class="et">No. de lesionados</span><span class="num">{{ t.lesionados }}</span><span class="det">en <b>{{ t.con_lesionados }}</b> reporte{{ t.con_lesionados|pluralize }}</span></div>
+    <div class="kpi"><span class="et">Lesionados que se retiran</span><span class="num">{{ t.se_retiran }}</span><span class="det"><b>{{ t.trasladados }}</b> trasladado{{ t.trasladados|pluralize }}</span></div>
+    <div class="kpi"><span class="et">Pases médicos</span><span class="num">{{ t.pases }}</span><span class="det">entregados en el periodo</span></div>
+    <div class="kpi"><span class="et">Activación de póliza</span><span class="num">{{ t.hdi }}</span><span class="det"><b>{{ t.hdi_pct }}%</b> de los reportes · HDI</span></div>
+  </div>
+
+  <div class="graficas">
+    <section class="card ancha"><h2>{{ t.titulo_tend }}</h2>
+      {% if t.sin_datos %}<p class="vacio-g">No hay reportes en este periodo.</p>{% else %}
+      <div class="tend" role="img" aria-label="{{ t.titulo_tend }}">
+        {% for corta, etq, n, h, act in t.tendencia %}<div class="col{% if not n %} cero{% endif %}{% if act %} act{% endif %}" title="{{ etq }}: {{ n }} reporte{{ n|pluralize }}"><span class="v">{{ n }}</span><span class="bar" style="height:{{ h }}%"></span></div>{% endfor %}
+      </div>
+      <div class="tend-eje" aria-hidden="true">{% for corta, etq, n, h, act in t.tendencia %}<span>{{ corta }}</span>{% endfor %}</div>
+      {% endif %}
+    </section>
+
+    <section class="card"><h2>Tipo de colisión</h2>
+      {% if t.colisiones %}<div class="hb">{% for e, n, w in t.colisiones %}<span class="e" title="{{ e }}">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">Sin tipo de colisión capturado en este periodo.</p>{% endif %}
+    </section>
+
+    <section class="card"><h2>Unidad responsable</h2>
+      {% if t.sin_datos %}<p class="vacio-g">No hay reportes en este periodo.</p>{% else %}
+      <div class="apil" role="img" aria-label="Sí {{ t.resp_si }}, No {{ t.resp_no }}, sin dato {{ t.resp_sd }}">{% for e, n, w, c in t.resp_barra %}{% if n %}<span class="{{ c }}" style="width:{{ w }}%" title="{{ e }}: {{ n }}"></span>{% endif %}{% endfor %}</div>
+      <div class="ley">{% for e, n, w, c in t.resp_barra %}<span class="{{ c }}"><i></i>{{ e }} <b>{{ n }}</b> <span style="color:var(--muted)">({{ w }}%)</span></span>{% endfor %}</div>
+      {% endif %}
+    </section>
+
+    <section class="card"><h2>Rutas con más reportes</h2>
+      {% if t.rutas %}<div class="hb">{% for e, n, w in t.rutas %}<span class="e" title="{{ e }}">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">Sin ruta capturada en este periodo.</p>{% endif %}
+    </section>
+
+    <section class="card"><h2>Daños más frecuentes</h2>
+      {% if t.danos %}<div class="hb">{% for e, n, w in t.danos %}<span class="e">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">Sin daños marcados en este periodo.</p>{% endif %}
+    </section>
+
+    <section class="card"><h2>Destino de unidades liberadas</h2>
+      {% if t.destinos %}<div class="hb">{% for e, n, w in t.destinos %}<span class="e" title="{{ e }}">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">Sin unidades liberadas en este periodo.</p>{% endif %}
+    </section>
+
+    <section class="card"><h2>Capturados por</h2>
+      {% if t.capturistas %}<div class="hb">{% for e, n, w in t.capturistas %}<span class="e" title="{{ e }}">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">No hay reportes en este periodo.</p>{% endif %}
+    </section>
+  </div>
+</section>
+{% endif %}
 
 {% if recientes %}
 <section class="card recientes"><h2>Últimos reportes</h2>

@@ -28,7 +28,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from pathlib import Path
 
-from . import servicios as sv
+from . import servicios as sv, tablero
 from .models import Cambio, Siniestro
 
 STATIC = Path(__file__).resolve().parent / "static" / "siniestros"
@@ -83,6 +83,8 @@ def inicio(request):
         "lib_hoy": base.filter(tipo=L, creado__date=hoy).count(),
         "total": base.count(), "pendientes": base.filter(estado__in=pendientes).count(),
         "recientes": base.select_related("capturado_por")[:5],
+        # tablero con números y gráficas: revisores y administradores
+        "t": tablero.calcular(base, request.GET.get("periodo", "mes")) if sv.puede_revisar(u) else None,
     })
 
 
