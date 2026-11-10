@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .models import Siniestro
-from .servicios import lista_danos
+from .servicios import CAUSALES, CODIGOS_LESIONADO, MOTIVOS_ACTIVACION, lista_danos
 
 PERIODOS = [("hoy", "Hoy"), ("semana", "7 días"), ("mes", "Este mes"), ("anio", "Este año"), ("todo", "Todo")]
 MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
@@ -95,7 +95,10 @@ def calcular(base, periodo, hoy=None):
     resp = Counter()
     colisiones, rutas, danos, destinos, capturistas = Counter(), Counter(), Counter(), Counter(), Counter()
     alcohol = hdi = con_lesionados = lesionados = danos_total = 0
-    no_dimensionar = se_retiran = pases = 0
+    no_dimensionar = se_retiran = 0
+    causales, motivos, codigos = Counter(), Counter(), Counter()
+    nombres_causal = dict(CAUSALES)
+    semanas = {}  # lunes -> contadores, como la tabla "SEMANA / DEL / AL" del Excel de indicadores
     for s in qs:
         d = s.datos or {}
         r = str(d.get("responsable") or "").upper()
@@ -112,18 +115,38 @@ def calcular(base, periodo, hoy=None):
             alcohol += 1
         if str(d.get("seguro_hdi") or d.get("activa_seguro") or "").upper() in ("SI", "SÍ"):
             hdi += 1
-        # causal "no dimensionar": la causal es texto libre, se busca la frase (con o sin acentos)
-        if "no dimension" in _sin_acentos(d.get("causal")):
-            no_dimensionar += 1
+        # causal: catálogo fijo; lo que no está en la lista (o "Otros") cuenta como Otros
+        causal = (d.get("causal") or "").strip().upper()
+        if causal:
+            causales[nombres_causal.get(causal, "Otros") if causal != "OTROS" else "Otros"] += 1
+        es_no_dim = causal == "NO DIMENSIONA"  # igual que el Excel: solo "No dimensiona" (no "Tercero no dimensiona")
+        no_dimensionar += es_no_dim
+        motivo = (d.get("motivo_activacion") or "").strip().upper()
+        if motivo:
+            motivos[dict(MOTIVOS_ACTIVACION).get(motivo, _bonito(motivo))] += 1
         les = [x for x in d.get("lesionados") or [] if (x.get("nombre") or "").strip()]
         if les:
             con_lesionados += 1
             lesionados += len(les)
-        # se retira = lesionado sin "Trasladado a"
-        se_retiran += sum(1 for x in les if not (x.get("trasladado_a") or "").strip())
-        pases += sum(1 for x in les if (x.get("pase_medico") or "").strip())
-        if s.tipo == L and (d.get("pase_medico") or "").strip():
-            pases += 1
+        retiran = sum(1 for x in les if x.get("se_retira"))
+        se_retiran += retiran
+        cod_reporte = Counter((x.get("codigo") or "SIN").upper() for x in les)
+        codigos.update(cod_reporte)
+        activa = str(d.get("seguro_hdi") or d.get("activa_seguro") or "").upper() in ("SI", "SÍ")
+        # renglón semanal
+        f = _fecha(s)
+        lunes = f - timedelta(days=f.weekday())
+        w = semanas.setdefault(lunes, Counter())
+        w["total"] += 1
+        w["resp"] += r in ("SI", "SÍ")
+        w["no_resp"] += r == "NO"
+        w["no_dim"] += es_no_dim
+        for c, _ in CODIGOS_LESIONADO:
+            w[c] += cod_reporte.get(c, 0)
+        w["activa"] += activa
+        w["garantizan"] += motivo == "NOS GARANTIZAN"
+        w["pases"] += motivo == "PASES MÉDICOS"
+        w["retira"] += retiran
         destino = d.get("enviar_a") if s.tipo == L else ((d.get("a") or {}).get("liberada_destino")
                                                           if (d.get("a") or {}).get("liberada") else "")
         if destino:
@@ -190,8 +213,13 @@ def calcular(base, periodo, hoy=None):
         "resp_barra": [("Sí", resp["SI"], pct(resp["SI"], total), "si"), ("No", resp["NO"], pct(resp["NO"], total), "no"),
                        ("Sin dato", resp["SD"], pct(resp["SD"], total), "sd")],
         "alcohol": alcohol, "hdi": hdi, "danos_total": danos_total,
-        "no_dimensionar": no_dimensionar, "se_retiran": se_retiran, "pases": pases,
-        "trasladados": lesionados - se_retiran, "hdi_pct": pct(hdi, total),
+        "no_dimensionar": no_dimensionar, "se_retiran": se_retiran,
+        "pases": motivos.get("Pases médicos", 0), "garantizan": motivos.get("Nos garantizan", 0),
+        "cristal": motivos.get("Orden de cristal", 0), "garantizamos": motivos.get("Garantizamos a tercero", 0),
+        "codigos": [(n, codigos.get(c, 0), c.lower()) for c, n in CODIGOS_LESIONADO],
+        "sin_codigo": codigos.get("SIN", 0),
+        "causales": _barras(causales, tope=14), "motivos": _barras(motivos),
+        "semanas": [(lunes, lunes + timedelta(days=6), w) for lunes, w in sorted(semanas.items(), reverse=True)][:26], "hdi_pct": pct(hdi, total),
         "con_lesionados": con_lesionados, "lesionados": lesionados,
         "colisiones": _barras(colisiones), "rutas": _barras(rutas), "danos": _barras(danos),
         "destinos": _barras(destinos), "capturistas": _barras(capturistas, tope=6),

@@ -91,6 +91,19 @@
 .ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .ley .si i{background:#b42318}.ley .no i{background:#11735a}.ley .sd i{background:#c9d2d9}
 .ley b{font-variant-numeric:tabular-nums}
+.kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.codigos{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
+.cod{white-space:nowrap}
+.cod i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0;border:1px solid rgba(0,0,0,.15)}
+.cod.verde i{background:#2e9d58}.cod.amarillo i{background:#e8b400}.cod.rojo i{background:#c62828}.cod.negro i{background:#15212b}.cod.sin i{background:#c9d2d9}
+.tabla-sem{overflow-x:auto}
+.tabla-sem table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.tabla-sem th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.tabla-sem td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.tabla-sem th:nth-child(-n+2),.tabla-sem td:nth-child(-n+2){text-align:left}
+.tabla-sem tbody tr:hover td{background:#f7f9fb}
 {% endblock %}
 {% block contenido %}
 <div class="saludo">
@@ -136,13 +149,16 @@
       <span class="num">{{ t.total }}</span>
       <span class="det"><b>{{ t.siniestros }}</b> siniestros · <b>{{ t.liberaciones }}</b> liberaciones<br>{% if t.delta_txt %}<span class="delta">{{ t.delta_txt }}</span> vs {{ t.texto_ant }} ({{ t.anterior }}){% else %}&nbsp;{% endif %}</span>
     </div>
-    <div class="kpi resp-si"><span class="et">Responsables</span><span class="num">{{ t.resp_si }}</span><span class="det"><b>{{ t.resp_pct }}%</b> de {{ t.con_resp }} con dato</span></div>
-    <div class="kpi resp-no"><span class="et">No responsables</span><span class="num">{{ t.resp_no }}</span><span class="det">{% if t.resp_sd %}<b>{{ t.resp_sd }}</b> sin dato{% else %}&nbsp;{% endif %}</span></div>
-    <div class="kpi"><span class="et">Causal: no dimensionar</span><span class="num">{{ t.no_dimensionar }}</span><span class="det">reporte{{ t.no_dimensionar|pluralize }} con esa causal</span></div>
-    <div class="kpi"><span class="et">No. de lesionados</span><span class="num">{{ t.lesionados }}</span><span class="det">en <b>{{ t.con_lesionados }}</b> reporte{{ t.con_lesionados|pluralize }}</span></div>
-    <div class="kpi"><span class="et">Lesionados que se retiran</span><span class="num">{{ t.se_retiran }}</span><span class="det"><b>{{ t.trasladados }}</b> trasladado{{ t.trasladados|pluralize }}</span></div>
-    <div class="kpi"><span class="et">Pases médicos</span><span class="num">{{ t.pases }}</span><span class="det">entregados en el periodo</span></div>
-    <div class="kpi"><span class="et">Activación de póliza</span><span class="num">{{ t.hdi }}</span><span class="det"><b>{{ t.hdi_pct }}%</b> de los reportes · HDI</span></div>
+    <div class="kpi resp-si"><span class="et">Responsable</span><span class="num">{{ t.resp_si }}</span><span class="det"><b>{{ t.resp_pct }}%</b> de {{ t.con_resp }} con dato</span></div>
+    <div class="kpi resp-no"><span class="et">No responsable</span><span class="num">{{ t.resp_no }}</span><span class="det">{% if t.resp_sd %}<b>{{ t.resp_sd }}</b> sin dato{% else %}&nbsp;{% endif %}</span></div>
+    <div class="kpi"><span class="et">No dimensionar</span><span class="num">{{ t.no_dimensionar }}</span><span class="det">causal "No dimensiona"</span></div>
+    <div class="kpi"><span class="et">Activación de póliza</span><span class="num">{{ t.hdi }}</span><span class="det"><b>{{ t.hdi_pct }}%</b> de los reportes</span></div>
+    <div class="kpi"><span class="et">Lesionados</span><span class="num">{{ t.lesionados }}</span>
+      <span class="det codigos">{% for n, c, cls in t.codigos %}<span class="cod {{ cls }}" title="Código {{ n|lower }}"><i></i>{{ n }} <b>{{ c }}</b></span>{% endfor %}{% if t.sin_codigo %}<span class="cod sin"><i></i>Sin código <b>{{ t.sin_codigo }}</b></span>{% endif %}</span></div>
+    <div class="kpi"><span class="et">Se retira del lugar</span><span class="num">{{ t.se_retiran }}</span><span class="det">lesionado{{ t.se_retiran|pluralize }}</span></div>
+    <div class="kpi"><span class="et">Pases médicos</span><span class="num">{{ t.pases }}</span><span class="det">motivo de activación</span></div>
+    <div class="kpi"><span class="et">Nos garantizan</span><span class="num">{{ t.garantizan }}</span><span class="det">motivo de activación</span></div>
+    <div class="kpi"><span class="et">Orden de cristal</span><span class="num">{{ t.cristal }}</span><span class="det">motivo de activación</span></div>
   </div>
 
   <div class="graficas">
@@ -153,6 +169,16 @@
       </div>
       <div class="tend-eje" aria-hidden="true">{% for corta, etq, n, h, act in t.tendencia %}<span>{{ corta }}</span>{% endfor %}</div>
       {% endif %}
+    </section>
+
+    <section class="card"><h2>Causal</h2>
+      {% if t.causales %}<div class="hb">{% for e, n, w in t.causales %}<span class="e" title="{{ e }}">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">Sin causal capturada en este periodo.</p>{% endif %}
+    </section>
+
+    <section class="card"><h2>Motivo de activación</h2>
+      {% if t.motivos %}<div class="hb">{% for e, n, w in t.motivos %}<span class="e" title="{{ e }}">{{ e }}</span><span class="t"><i style="width:{{ w }}%"></i></span><span class="n">{{ n }}</span>{% endfor %}</div>
+      {% else %}<p class="vacio-g">Sin motivo de activación capturado en este periodo.</p>{% endif %}
     </section>
 
     <section class="card"><h2>Tipo de colisión</h2>
@@ -187,6 +213,22 @@
       {% else %}<p class="vacio-g">No hay reportes en este periodo.</p>{% endif %}
     </section>
   </div>
+
+  {% if t.semanas %}
+  <section class="card"><h2>Indicadores por semana</h2>
+    <p class="nota-g">Igual que la tabla del Excel de indicadores: semanas de lunes a domingo.</p>
+    <div class="tabla-sem">
+    <table>
+      <thead><tr><th>Del</th><th>Al</th><th>Reportes</th><th>Responsable</th><th>No responsable</th><th>No dimensionar</th>
+        <th>Les. verde</th><th>Les. amarillo</th><th>Les. rojo</th><th>Les. negro</th><th>Activación de póliza</th><th>Nos garantizan</th><th>Pases médicos</th><th>Se retira del lugar</th></tr></thead>
+      <tbody>{% for ini, fin, w in t.semanas %}
+        <tr><td>{{ ini|date:"d/m/Y" }}</td><td>{{ fin|date:"d/m/Y" }}</td><td>{{ w.total }}</td><td>{{ w.resp }}</td><td>{{ w.no_resp }}</td><td>{{ w.no_dim }}</td>
+          <td>{{ w.VERDE }}</td><td>{{ w.AMARILLO }}</td><td>{{ w.ROJO }}</td><td>{{ w.NEGRO }}</td><td>{{ w.activa }}</td><td>{{ w.garantizan }}</td><td>{{ w.pases }}</td><td>{{ w.retira }}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+    </div>
+  </section>
+  {% endif %}
 </section>
 {% endif %}
 

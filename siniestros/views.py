@@ -418,7 +418,7 @@ from django.core.exceptions import PermissionDenied
 from datetime import date as _date
 
 CAMPOS_LIB = ["fecha", "ejecutivo", "no_empleado", "economico", "ruta",
-              "activa_seguro", "motivo_activacion", "causal", "pase_medico",
+              "activa_seguro", "motivo_activacion", "causal", "causal_otro", "pase_medico",
               # generalidades (igual que en el reporte de campo, sin anexos)
               "enviar_a", "colision", "responsable", "medio_prueba", "nota",
               "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b",
@@ -499,4 +499,8 @@ def liberacion(request, folio=None):
         "fotos_previas": fotos_previas, "max_fotos": sv.FOTOS["otras"][1],
         # un valor viejo que no está en la lista se conserva como opción extra
         "colision_extra": colision if colision and colision not in dict(sv.COLISIONES) else "",
+        "causales": sv.CAUSALES, "motivos": sv.MOTIVOS_ACTIVACION,
+        "causal_extra": datos.get("causal") if datos.get("causal") and datos.get("causal") not in dict(sv.CAUSALES) else "",
+        "motivo_extra": datos.get("motivo_activacion") if datos.get("motivo_activacion")
+                        and datos.get("motivo_activacion") not in dict(sv.MOTIVOS_ACTIVACION) else "",
     })

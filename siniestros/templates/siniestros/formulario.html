@@ -295,7 +295,8 @@ footer .btn{flex:1;max-width:340px}
   <!-- 5 GENERALIDADES -->
   <section class="paso" data-titulo="Generalidades">
     <fieldset><legend>Del hecho</legend>
-      <div class="campo"><label>Causal</label><input type="text" name="causal"></div>
+      <div class="campo"><label for="causal">Causal</label><select id="causal" name="causal"><option value="">Selecciona…</option><option value="HECHO FORTUITO">Hecho fortuito</option><option value="NO DIMENSIONA">No dimensiona</option><option value="TERCERO NO DIMENSIONA">Tercero no dimensiona</option><option value="MANIOBRA DE REVERSA">Maniobra de reversa</option><option value="TERCERO REALIZA MANIOBRA DE REVERSA">Tercero realiza maniobra de reversa</option><option value="DAÑOS DOLOSOS">Daños dolosos</option><option value="NEGLIGENCIA DEL USUARIO">Negligencia del usuario</option><option value="NEGLIGENCIA DEL EJECUTIVO">Negligencia del ejecutivo</option><option value="CORTE DE CIRCULACIÓN">Corte de circulación</option><option value="TERCERO REALIZA CORTE DE CIRCULACIÓN">Tercero realiza corte de circulación</option><option value="FRENADO INTEMPESTIVO">Frenado intempestivo</option><option value="NO GUARDA DISTANCIA">No guarda distancia</option><option value="TERCERO NO GUARDA DISTANCIA">Tercero no guarda distancia</option><option value="OTROS">Otros</option></select></div>
+      <div class="campo" data-si="causal=OTROS"><label>¿Cuál causal?</label><input type="text" name="causal_otro" placeholder="Escribe la causal"></div>
       <div class="campo"><label for="colision">Tipo de colisión</label><select id="colision" name="colision"><option value="">Selecciona…</option><option value="ALCANCE">Alcance</option><option value="CHOQUE CRUCERO">Choque crucero</option><option value="CHOQUE DE FRENTE">Choque de frente</option><option value="CHOQUE LATERAL">Choque lateral</option><option value="SALIDA DE LA SUPERFICIE DE RODAMIENTO">Salida de la superficie de rodamiento</option><option value="ESTRELLAMIENTO">Estrellamiento</option><option value="VOLCADURA">Volcadura</option><option value="PROYECCIÓN">Proyección</option><option value="ATROPELLO">Atropello</option><option value="CAÍDA DE PERSONA">Caída de persona</option><option value="CHOQUE CON MÓVIL DE VEHÍCULO">Choque con móvil de vehículo</option><option value="CHOQUES DIVERSOS">Choques diversos</option><option value="DAÑO DOLOSO">Daño doloso</option></select></div>
       <div class="campo"><span class="etq">¿La unidad es responsable?</span>
         <div class="seg"><label><input type="radio" name="responsable" value="SI"><span>Sí</span></label><label><input type="radio" name="responsable" value="NO"><span>No</span></label></div>
@@ -343,6 +344,7 @@ footer .btn{flex:1;max-width:340px}
       <div class="campo"><span class="etq">¿Se activa seguro HDI?</span>
         <div class="seg"><label><input type="radio" name="seguro_hdi" value="SI"><span>Sí</span></label><label><input type="radio" name="seguro_hdi" value="NO"><span>No</span></label></div>
       </div>
+      <div class="campo"><label for="motivo_activacion">Motivo de activación</label><select id="motivo_activacion" name="motivo_activacion"><option value="">N/A</option><option value="ORDEN DE CRISTAL">Orden de cristal</option><option value="NOS GARANTIZAN">Nos garantizan</option><option value="PASES MÉDICOS">Pases médicos</option><option value="GARANTIZAMOS A TERCERO">Garantizamos a tercero</option></select></div>
       <span class="etq" style="color:var(--ink)">Ejecutivo (A)</span>
       <div class="fila">
         <div class="campo"><label>Seguro comercial</label><input type="text" value="HDI SEGUROS" disabled></div>
@@ -582,7 +584,11 @@ function pintarLesionados() {
         <div class="campo"><label>Teléfono</label><input type="tel" name="lesionados.${i}.telefono"></div>
         <div class="campo"><label>Pase médico</label><input type="text" name="lesionados.${i}.pase_medico"></div>
       </div>
-      <div class="campo"><label>Trasladado a</label><input type="text" name="lesionados.${i}.trasladado_a"></div>
+      <div class="fila">
+        <div class="campo"><label>Código</label><select name="lesionados.${i}.codigo"><option value="">—</option><option value="VERDE">Verde</option><option value="AMARILLO">Amarillo</option><option value="ROJO">Rojo</option><option value="NEGRO">Negro</option></select></div>
+        <div class="campo"><label>Trasladado a</label><input type="text" name="lesionados.${i}.trasladado_a"></div>
+      </div>
+      <label class="chk na"><input type="checkbox" name="lesionados.${i}.se_retira"> Se retira del lugar</label>
     </div>`).join("");
   enlazar(caja);
   $("#btnAgregarLes").disabled = (S.lesionados || []).length >= 8;

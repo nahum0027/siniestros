@@ -67,7 +67,14 @@
 
     <section class="card"><h2>Generalidades</h2>
       <div class="g">
-        <div class="c2"><label for="causal">Causal</label><input id="causal" name="causal" value="{{ d.causal|default:'' }}"></div>
+        <div class="c2"><label for="causal">Causal</label>
+          <select id="causal" name="causal">
+            <option value="">Selecciona…</option>
+            {% for valor, nombre in causales %}<option value="{{ valor }}" {% if d.causal == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+            {% if causal_extra %}<option value="{{ causal_extra }}" selected>{{ causal_extra }}</option>{% endif %}
+          </select>
+          <div class="sub" data-si-valor="causal=OTROS" style="margin-top:8px"><label for="causal_otro">¿Cuál causal?</label><input id="causal_otro" name="causal_otro" value="{{ d.causal_otro|default:'' }}" placeholder="Escribe la causal"></div>
+        </div>
         <div class="c2"><label for="colision">Tipo de colisión</label>
           <select id="colision" name="colision">
             <option value="">Selecciona…</option>
@@ -121,7 +128,13 @@
             <label><input type="radio" name="activa_seguro" value="NO" {% if d.activa_seguro == "NO" %}checked{% endif %}><span>No</span></label>
           </div>
         </div>
-        <div><label for="motivo_activacion">Motivo de activación</label><input id="motivo_activacion" name="motivo_activacion" value="{{ d.motivo_activacion|default:'' }}"></div>
+        <div><label for="motivo_activacion">Motivo de activación</label>
+          <select id="motivo_activacion" name="motivo_activacion">
+            <option value="">N/A</option>
+            {% for valor, nombre in motivos %}<option value="{{ valor }}" {% if d.motivo_activacion == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+            {% if motivo_extra %}<option value="{{ motivo_extra }}" selected>{{ motivo_extra }}</option>{% endif %}
+          </select>
+        </div>
         <div><label for="pase_medico">Pase médico</label><input id="pase_medico" name="pase_medico" value="{{ d.pase_medico|default:'' }}"></div>
         <div class="c4">
           <label class="chk"><input type="checkbox" name="hay_participe" {% if d.hay_participe or d.b.seguro or d.b.garantiza %}checked{% endif %}> Hubo otro partícipe</label>
@@ -174,6 +187,10 @@
     document.querySelectorAll("[data-si]").forEach(el => { el.hidden = !document.querySelector(`[name="${el.dataset.si}"]`).checked; });
   };
   document.querySelectorAll(".chk input").forEach(i => i.addEventListener("change", pintar));
+  // causal "Otros": aparece el campo para escribirla
+  const selCausal = document.getElementById("causal"), cajaOtro = document.querySelector('[data-si-valor="causal=OTROS"]');
+  const verOtro = () => { cajaOtro.hidden = selCausal.value !== "OTROS"; };
+  selCausal.addEventListener("change", verOtro); verOtro();
   pintar();
   // ---------------- fotos: se reducen en el navegador (≈1600 px, JPEG) antes de enviarse
   const MAX = {{ max_fotos }}, FOLIO = "{{ s.folio|default:'' }}";

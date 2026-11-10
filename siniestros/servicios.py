@@ -34,6 +34,26 @@ COLISIONES = [(n.upper(), n) for n in (
     "Salida de la superficie de rodamiento", "Estrellamiento", "Volcadura", "Proyección",
     "Atropello", "Caída de persona", "Choque con móvil de vehículo", "Choques diversos", "Daño doloso")]
 
+# Causales (catálogo fijo, para contar y graficar). "OTROS" deja escribir la causal en causal_otro.
+CAUSALES = [(n.upper(), n) for n in (
+    "Hecho fortuito", "No dimensiona", "Tercero no dimensiona", "Maniobra de reversa", "Tercero realiza maniobra de reversa", "Daños dolosos", "Negligencia del usuario", "Negligencia del ejecutivo", "Corte de circulación", "Tercero realiza corte de circulación", "Frenado intempestivo", "No guarda distancia", "Tercero no guarda distancia")] + [("OTROS", "Otros")]
+
+# Motivo de activación de la póliza (como en el Excel de indicadores de siniestros)
+MOTIVOS_ACTIVACION = [("ORDEN DE CRISTAL", "Orden de cristal"), ("NOS GARANTIZAN", "Nos garantizan"),
+                      ("PASES MÉDICOS", "Pases médicos"), ("GARANTIZAMOS A TERCERO", "Garantizamos a tercero")]
+
+# Código (triage) de cada lesionado
+CODIGOS_LESIONADO = [("VERDE", "Verde"), ("AMARILLO", "Amarillo"), ("ROJO", "Rojo"), ("NEGRO", "Negro")]
+
+
+def causal_texto(d):
+    """La causal como debe salir en formatos y resúmenes: si es "Otros", lo que escribieron."""
+    c = (d.get("causal") or "").strip()
+    if c.upper() == "OTROS":
+        return (d.get("causal_otro") or "").strip().upper() or "OTROS"
+    return c
+
+
 # Liberación exprés: a dónde se envía la unidad liberada
 DESTINOS_LIB = [("CONTINÚA EN RUTA", "Continúa en ruta"), ("MANTENIMIENTO", "Mantenimiento"), ("VÍA LÁCTEA", "Vía Láctea"), ("PATIO LA NACIÓN", "Patio La Nación")]
 
@@ -52,7 +72,7 @@ ETIQUETAS = {
     "fecha": "Fecha", "hora": "Hora", "ruta": "Ruta", "economico": "No. económico", "lugar": "Lugar del hecho",
     "colonia": "Colonia", "competencia": "Competencia", "competencia_otro": "Competencia (otro)",
     "reporte_aseguradora": "Reporte de aseguradora", "agente_nombre": "Agente de siniestros",
-    "perito_nombre": "Perito HTT", "causal": "Causal", "colision": "Tipo de colisión", "responsable": "Responsable",
+    "perito_nombre": "Perito HTT", "causal": "Causal", "causal_otro": "Causal (otros)", "colision": "Tipo de colisión", "responsable": "Responsable",
     "medio_prueba": "Medio de prueba", "nota": "Nota", "alcohol": "Influjo de alcohol/sustancias",
     "narrativa": "Redacción de hechos", "seguro_activo": "Se activa el seguro", "pases_medicos": "Pases médicos",
     "seguro_garantiza": "Seguro que garantiza", "aplica_convenio": "Convenio", "forma_reparacion": "Forma de reparación",
@@ -80,7 +100,8 @@ CAMPOS_PARTICIPE = {
     "trasladado_a": "Trasladado a", "disposicion": "A disposición de",
 }
 CAMPOS_LESIONADO = {"nombre": "Nombre", "direccion": "Dirección", "telefono": "Teléfono",
-                    "pase_medico": "Pase médico", "trasladado_a": "Trasladado a"}
+                    "pase_medico": "Pase médico", "trasladado_a": "Trasladado a",
+                    "codigo": "Código", "se_retira": "Se retira del lugar"}
 
 
 def etiqueta(campo):
@@ -213,6 +234,7 @@ def regenerar_documentos(siniestro):
     j = siniestro.datos
     datos = dict(j)
     datos["fecha"] = _fecha(j.get("fecha")) or siniestro.creado.date()
+    datos["causal"] = causal_texto(j)
     datos["responsable"] = {"SI": True, "NO": False}.get(j.get("responsable"))
     for k in ("a", "b"):
         p = dict(j.get(k) or {})
@@ -350,7 +372,7 @@ def resumen_secciones(s):
 
     if s.es_liberacion:
         quien = {"A": "ejecutivo", "B": "otro conductor"}.get(d.get("alcohol_conductor"), "")
-        gen = [("Liberada, enviar a", v(d.get("enviar_a"))), ("Causal", v(d.get("causal"))),
+        gen = [("Liberada, enviar a", v(d.get("enviar_a"))), ("Causal", v(causal_texto(d))),
                ("Colisión", v(d.get("colision"))), ("Unidad responsable", sino(d.get("responsable"))),
                ("Medio de prueba", v(d.get("medio_prueba")))]
         gen += [("Daños", danos)] if d.get("danos") else []
@@ -395,9 +417,12 @@ def resumen_secciones(s):
     if les:
         secciones.append(("LESIONADOS", [(f"{i}. {l['nombre']}", " · ".join(x for x in (
             l.get("direccion") or "", l.get("telefono") or "", f"Pase {l['pase_medico']}" if l.get("pase_medico") else "",
-            f"Trasladado a {l['trasladado_a']}" if l.get("trasladado_a") else "") if x) or "—") for i, l in enumerate(les, 1)]))
-    gen = [("Causal", v(d.get("causal"))), ("Colisión", v(d.get("colision"))), ("Unidad responsable", v(d.get("responsable"))),
+            f"Trasladado a {l['trasladado_a']}" if l.get("trasladado_a") else "",
+            f"Código {l['codigo'].lower()}" if l.get("codigo") else "",
+            "Se retira del lugar" if l.get("se_retira") else "") if x) or "—") for i, l in enumerate(les, 1)]))
+    gen = [("Causal", v(causal_texto(d))), ("Colisión", v(d.get("colision"))), ("Unidad responsable", v(d.get("responsable"))),
            ("Medio de prueba", v(d.get("medio_prueba"))), ("¿Se activa seguro HDI?", sino(d.get("seguro_hdi"))),
+           ("Motivo de activación", d.get("motivo_activacion") or "N/A"),
            ("Seguro A / garantiza", f"HDI SEGUROS / {v(a.get('garantiza'))}")]
     if not d.get("b_no_aplica"):
         gen.append(("Seguro B / garantiza", f"{v(b.get('seguro'))} / {v(b.get('garantiza'))}"))
@@ -423,6 +448,7 @@ def _mismo_nombre(a, b):
 def regenerar_liberacion(siniestro):
     datos = dict(siniestro.datos)
     datos["fecha"] = _fecha(datos.get("fecha")) or siniestro.creado.date()
+    datos["causal"] = causal_texto(datos)
     datos["firma_ejecutivo"] = ruta_imagen(siniestro, "firma_ejecutivo")
     datos["generalidades"] = resumen_generalidades_lib(datos)
     for viejo in siniestro.carpeta.glob("*.*"):
