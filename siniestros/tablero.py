@@ -70,6 +70,30 @@ def _sin_acentos(texto):
     return unicodedata.normalize("NFKD", texto or "").encode("ascii", "ignore").decode().lower()
 
 
+def normalizar_motivo(texto):
+    """Motivo de activación -> valor del catálogo, o "" si no aplica.
+    Las liberaciones viejas lo tenían en texto libre ("N/a", "0", "Solicitar orden para cristal…"):
+    se agrupan por palabras clave; lo que no se reconoce cuenta como "OTROS"."""
+    t = _sin_acentos(texto).upper().strip(" .")
+    if not t or t in ("N/A", "NA", "NO", "0", "O", "-", "—", "NINGUNO", "NO APLICA", "SIN MOTIVO"):
+        return ""
+    if t in dict(MOTIVOS_ACTIVACION) or texto.strip().upper() in dict(MOTIVOS_ACTIVACION):
+        return texto.strip().upper() if texto.strip().upper() in dict(MOTIVOS_ACTIVACION) else t
+    if "CRISTAL" in t or "VIDRIO" in t or "PARABRISAS" in t:
+        return "ORDEN DE CRISTAL"
+    if "PASE" in t:
+        return "PASES MÉDICOS"
+    if "GARANTIZ" in t:
+        return "GARANTIZAMOS A TERCERO" if ("GARANTIZAMOS" in t or "TERCERO" in t) else "NOS GARANTIZAN"
+    return "OTROS"
+
+
+def _hay_dato(texto):
+    """Texto capturado que sí dice algo (no vacío, "N/A", "0", "no")."""
+    t = _sin_acentos(texto).upper().strip(" .")
+    return bool(t) and t not in ("N/A", "NA", "NO", "0", "O", "-", "—", "NINGUNO", "NO APLICA", "SIN PASE")
+
+
 def _bonito(texto):
     t = (texto or "").strip()
     return t[:1].upper() + t[1:].lower() if t else ""
@@ -95,7 +119,7 @@ def calcular(base, periodo, hoy=None):
     resp = Counter()
     colisiones, rutas, danos, destinos, capturistas = Counter(), Counter(), Counter(), Counter(), Counter()
     alcohol = hdi = con_lesionados = lesionados = danos_total = 0
-    no_dimensionar = se_retiran = 0
+    no_dimensionar = se_retiran = pases_otorgados = 0
     causales, motivos, codigos = Counter(), Counter(), Counter()
     nombres_causal = dict(CAUSALES)
     semanas = {}  # lunes -> contadores, como la tabla "SEMANA / DEL / AL" del Excel de indicadores
@@ -121,14 +145,19 @@ def calcular(base, periodo, hoy=None):
             causales[nombres_causal.get(causal, "Otros") if causal != "OTROS" else "Otros"] += 1
         es_no_dim = causal == "NO DIMENSIONA"  # igual que el Excel: solo "No dimensiona" (no "Tercero no dimensiona")
         no_dimensionar += es_no_dim
-        motivo = (d.get("motivo_activacion") or "").strip().upper()
+        motivo = normalizar_motivo(d.get("motivo_activacion"))
         if motivo:
-            motivos[dict(MOTIVOS_ACTIVACION).get(motivo, _bonito(motivo))] += 1
+            motivos[dict(MOTIVOS_ACTIVACION).get(motivo, "Otros")] += 1
         les = [x for x in d.get("lesionados") or [] if (x.get("nombre") or "").strip()]
         if les:
             con_lesionados += 1
             lesionados += len(les)
         retiran = sum(1 for x in les if x.get("se_retira"))
+        # pases médicos otorgados: lesionados con número de pase (y el pase de la liberación exprés)
+        otorgados = sum(1 for x in les if _hay_dato(x.get("pase_medico")))
+        if s.tipo == L and _hay_dato(d.get("pase_medico")):
+            otorgados += 1
+        pases_otorgados += otorgados
         se_retiran += retiran
         cod_reporte = Counter((x.get("codigo") or "SIN").upper() for x in les)
         codigos.update(cod_reporte)
@@ -214,7 +243,7 @@ def calcular(base, periodo, hoy=None):
                        ("Sin dato", resp["SD"], pct(resp["SD"], total), "sd")],
         "alcohol": alcohol, "hdi": hdi, "danos_total": danos_total,
         "no_dimensionar": no_dimensionar, "se_retiran": se_retiran,
-        "pases": motivos.get("Pases médicos", 0), "garantizan": motivos.get("Nos garantizan", 0),
+        "pases": motivos.get("Pases médicos", 0), "pases_otorgados": pases_otorgados, "garantizan": motivos.get("Nos garantizan", 0),
         "cristal": motivos.get("Orden de cristal", 0), "garantizamos": motivos.get("Garantizamos a tercero", 0),
         "codigos": [(n, codigos.get(c, 0), c.lower()) for c, n in CODIGOS_LESIONADO],
         "sin_codigo": codigos.get("SIN", 0),

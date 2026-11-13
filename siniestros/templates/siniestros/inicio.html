@@ -156,7 +156,7 @@
     <div class="kpi"><span class="et">Lesionados</span><span class="num">{{ t.lesionados }}</span>
       <span class="det codigos">{% for n, c, cls in t.codigos %}<span class="cod {{ cls }}" title="Código {{ n|lower }}"><i></i>{{ n }} <b>{{ c }}</b></span>{% endfor %}{% if t.sin_codigo %}<span class="cod sin"><i></i>Sin código <b>{{ t.sin_codigo }}</b></span>{% endif %}</span></div>
     <div class="kpi"><span class="et">Se retira del lugar</span><span class="num">{{ t.se_retiran }}</span><span class="det">lesionado{{ t.se_retiran|pluralize }}</span></div>
-    <div class="kpi"><span class="et">Pases médicos</span><span class="num">{{ t.pases }}</span><span class="det">motivo de activación</span></div>
+    <div class="kpi"><span class="et">Pases médicos</span><span class="num">{{ t.pases }}</span><span class="det">reporte{{ t.pases|pluralize }} con motivo "Pases médicos"<br><b>{{ t.pases_otorgados }}</b> pase{{ t.pases_otorgados|pluralize }} otorgado{{ t.pases_otorgados|pluralize }}</span></div>
     <div class="kpi"><span class="et">Nos garantizan</span><span class="num">{{ t.garantizan }}</span><span class="det">motivo de activación</span></div>
     <div class="kpi"><span class="et">Orden de cristal</span><span class="num">{{ t.cristal }}</span><span class="det">motivo de activación</span></div>
   </div>
