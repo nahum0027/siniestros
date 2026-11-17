@@ -92,9 +92,8 @@
 .ley .si i{background:#b42318}.ley .no i{background:#11735a}.ley .sd i{background:#c9d2d9}
 .ley b{font-variant-numeric:tabular-nums}
 .kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
-.kpi.prin{grid-column:span 2}
-@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi.prin{grid-column:auto}}
-@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi.prin{grid-column:span 2}}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi.prin{grid-column:1/-1}}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi.prin,.kpis>.kpi:last-child{grid-column:span 2}}
 .codigos{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
 .cod{white-space:nowrap}
 .cod i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0;border:1px solid rgba(0,0,0,.15)}
@@ -158,6 +157,7 @@
     <div class="kpi"><span class="et">Se retira del lugar</span><span class="num">{{ t.se_retiran }}</span><span class="det">lesionado{{ t.se_retiran|pluralize }}</span></div>
     <div class="kpi"><span class="et">Pases médicos</span><span class="num">{{ t.pases }}</span><span class="det">reporte{{ t.pases|pluralize }} con motivo "Pases médicos"<br><b>{{ t.pases_otorgados }}</b> pase{{ t.pases_otorgados|pluralize }} otorgado{{ t.pases_otorgados|pluralize }}</span></div>
     <div class="kpi"><span class="et">Nos garantizan</span><span class="num">{{ t.garantizan }}</span><span class="det">motivo de activación</span></div>
+    <div class="kpi"><span class="et">Garantizamos a tercero</span><span class="num">{{ t.garantizamos }}</span><span class="det">motivo de activación</span></div>
     <div class="kpi"><span class="et">Orden de cristal</span><span class="num">{{ t.cristal }}</span><span class="det">motivo de activación</span></div>
   </div>
 
@@ -220,10 +220,10 @@
     <div class="tabla-sem">
     <table>
       <thead><tr><th>Del</th><th>Al</th><th>Reportes</th><th>Responsable</th><th>No responsable</th>
-        <th>Les. verde</th><th>Les. amarillo</th><th>Les. rojo</th><th>Les. negro</th><th>Activación de póliza</th><th>Nos garantizan</th><th>Pases médicos</th><th>Se retira del lugar</th></tr></thead>
+        <th>Les. verde</th><th>Les. amarillo</th><th>Les. rojo</th><th>Les. negro</th><th>Activación de póliza</th><th>Nos garantizan</th><th>Garantizamos</th><th>Pases médicos</th><th>Se retira del lugar</th></tr></thead>
       <tbody>{% for ini, fin, w in t.semanas %}
         <tr><td>{{ ini|date:"d/m/Y" }}</td><td>{{ fin|date:"d/m/Y" }}</td><td>{{ w.total }}</td><td>{{ w.resp }}</td><td>{{ w.no_resp }}</td>
-          <td>{{ w.VERDE }}</td><td>{{ w.AMARILLO }}</td><td>{{ w.ROJO }}</td><td>{{ w.NEGRO }}</td><td>{{ w.activa }}</td><td>{{ w.garantizan }}</td><td>{{ w.pases }}</td><td>{{ w.retira }}</td></tr>
+          <td>{{ w.VERDE }}</td><td>{{ w.AMARILLO }}</td><td>{{ w.ROJO }}</td><td>{{ w.NEGRO }}</td><td>{{ w.activa }}</td><td>{{ w.garantizan }}</td><td>{{ w.garantizamos }}</td><td>{{ w.pases }}</td><td>{{ w.retira }}</td></tr>
       {% endfor %}</tbody>
     </table>
     </div>

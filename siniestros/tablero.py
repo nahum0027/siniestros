@@ -174,6 +174,7 @@ def calcular(base, periodo, hoy=None):
             w[c] += cod_reporte.get(c, 0)
         w["activa"] += activa
         w["garantizan"] += motivo == "NOS GARANTIZAN"
+        w["garantizamos"] += motivo == "GARANTIZAMOS A TERCERO"
         w["pases"] += motivo == "PASES MÉDICOS"
         w["retira"] += retiran
         destino = d.get("enviar_a") if s.tipo == L else ((d.get("a") or {}).get("liberada_destino")
