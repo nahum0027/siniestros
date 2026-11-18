@@ -98,12 +98,6 @@
 .cod{white-space:nowrap}
 .cod i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0;border:1px solid rgba(0,0,0,.15)}
 .cod.verde i{background:#2e9d58}.cod.amarillo i{background:#e8b400}.cod.rojo i{background:#c62828}.cod.negro i{background:#15212b}.cod.sin i{background:#c9d2d9}
-.tabla-sem{overflow-x:auto}
-.tabla-sem table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-.tabla-sem th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap}
-.tabla-sem td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line-2);white-space:nowrap}
-.tabla-sem th:nth-child(-n+2),.tabla-sem td:nth-child(-n+2){text-align:left}
-.tabla-sem tbody tr:hover td{background:#f7f9fb}
 {% endblock %}
 {% block contenido %}
 <div class="saludo">
@@ -214,21 +208,6 @@
     </section>
   </div>
 
-  {% if t.semanas %}
-  <section class="card"><h2>Indicadores por semana</h2>
-    <p class="nota-g">Igual que la tabla del Excel de indicadores: semanas de lunes a domingo.</p>
-    <div class="tabla-sem">
-    <table>
-      <thead><tr><th>Del</th><th>Al</th><th>Reportes</th><th>Responsable</th><th>No responsable</th>
-        <th>Les. verde</th><th>Les. amarillo</th><th>Les. rojo</th><th>Les. negro</th><th>Activación de póliza</th><th>Nos garantizan</th><th>Garantizamos</th><th>Pases médicos</th><th>Se retira del lugar</th></tr></thead>
-      <tbody>{% for ini, fin, w in t.semanas %}
-        <tr><td>{{ ini|date:"d/m/Y" }}</td><td>{{ fin|date:"d/m/Y" }}</td><td>{{ w.total }}</td><td>{{ w.resp }}</td><td>{{ w.no_resp }}</td>
-          <td>{{ w.VERDE }}</td><td>{{ w.AMARILLO }}</td><td>{{ w.ROJO }}</td><td>{{ w.NEGRO }}</td><td>{{ w.activa }}</td><td>{{ w.garantizan }}</td><td>{{ w.garantizamos }}</td><td>{{ w.pases }}</td><td>{{ w.retira }}</td></tr>
-      {% endfor %}</tbody>
-    </table>
-    </div>
-  </section>
-  {% endif %}
 </section>
 {% endif %}
 
