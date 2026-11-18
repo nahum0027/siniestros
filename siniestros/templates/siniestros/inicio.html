@@ -45,6 +45,14 @@
 .periodos{display:flex;gap:6px;flex-wrap:wrap}
 .periodos a{padding:6px 12px;border-radius:999px;background:#fff;border:1.5px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px}
 .periodos a.act{background:var(--pri);border-color:var(--pri);color:#fff}
+.filtro-t{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.rango{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:5px 6px 5px 10px}
+.rango.act{border-color:var(--pri);box-shadow:0 0 0 2px var(--pri-soft)}
+.rango label{display:flex;align-items:center;gap:5px;margin:0;font-size:13px;font-weight:600;color:var(--muted)}
+.rango input{border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-size:13px;width:auto;min-height:0}
+.rango .btn{padding:5px 14px;font-size:13px;min-height:0}
+.rango .quitar{color:var(--muted);text-decoration:none;font-weight:700;padding:0 6px}
+@media (max-width:700px){.filtro-t{align-items:stretch;width:100%}.rango{justify-content:space-between}.rango label{flex:1}.rango input{flex:1}.rango .btn{flex:1}}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 14px}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kpi{background:var(--card);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--ink)}
@@ -133,8 +141,16 @@
 {% if t %}
 <section class="tablero">
   <div class="tab-cab">
-    <div><h2>Tablero</h2><p class="sub">Reportes de {{ t.texto }} · por fecha del hecho</p></div>
-    <nav class="periodos" aria-label="Periodo">{% for v, n in t.periodos %}<a href="?periodo={{ v }}" class="{% if v == t.periodo %}act{% endif %}">{{ n }}</a>{% endfor %}</nav>
+    <div><h2>Tablero</h2><p class="sub">Reportes {% if t.periodo == "rango" %}{{ t.texto }}{% else %}de {{ t.texto }}{% endif %} · por fecha del hecho</p></div>
+    <div class="filtro-t">
+      <nav class="periodos" aria-label="Periodo">{% for v, n in t.periodos %}<a href="?periodo={{ v }}" class="{% if v == t.periodo %}act{% endif %}">{{ n }}</a>{% endfor %}</nav>
+      <form class="rango{% if t.periodo == 'rango' %} act{% endif %}" method="get" aria-label="Rango de fechas">
+        <label><span>Del</span><input type="date" name="desde" value="{{ t.desde }}" required></label>
+        <label><span>Al</span><input type="date" name="hasta" value="{{ t.hasta }}"></label>
+        <button class="btn pri" type="submit">Ver</button>
+        {% if t.periodo == 'rango' %}<a class="quitar" href="?" title="Quitar rango">✕</a>{% endif %}
+      </form>
+    </div>
   </div>
 
   <div class="kpis">

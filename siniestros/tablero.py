@@ -40,6 +40,27 @@ def _rango(periodo, hoy):
     return ini, hoy, ant_ini, ant_fin, f"{MESES_LARGOS[hoy.month - 1]} {hoy.year}", "el mismo corte del mes anterior"
 
 
+def _fecha_param(texto):
+    """'AAAA-MM-DD' del calendario -> date (o None si viene vacío o mal)."""
+    try:
+        return date.fromisoformat(str(texto or "").strip()[:10])
+    except ValueError:
+        return None
+
+
+def _rango_libre(desde, hasta):
+    """Rango elegido en el calendario; se compara contra el mismo número de días justo antes."""
+    if desde > hasta:
+        desde, hasta = hasta, desde
+    dias = (hasta - desde).days + 1
+    ant_fin = desde - timedelta(days=1)
+    ant_ini = ant_fin - timedelta(days=dias - 1)
+    f = lambda d: d.strftime("%d/%m/%Y")
+    texto = f"del {f(desde)}" if desde == hasta else f"del {f(desde)} al {f(hasta)}"
+    texto_ant = "el día anterior" if dias == 1 else f"los {dias} días anteriores"
+    return desde, hasta, ant_ini, ant_fin, texto, texto_ant
+
+
 def _filtrar(qs, ini, fin):
     if ini is None:
         return qs
@@ -103,11 +124,17 @@ def _fecha(s):
     return s.fecha_hecho or timezone.localtime(s.creado).date()
 
 
-def calcular(base, periodo, hoy=None):
+def calcular(base, periodo, hoy=None, desde=None, hasta=None):
     hoy = hoy or timezone.localdate()
-    if periodo not in dict(PERIODOS):
-        periodo = "mes"
-    ini, fin, ant_ini, ant_fin, texto, texto_ant = _rango(periodo, hoy)
+    desde, hasta = _fecha_param(desde), _fecha_param(hasta)
+    if desde or hasta:
+        # rango del calendario; si solo ponen una fecha, la otra es esa misma (desde) o hoy (hasta)
+        periodo = "rango"
+        ini, fin, ant_ini, ant_fin, texto, texto_ant = _rango_libre(desde or hasta, hasta or hoy if desde else hasta)
+    else:
+        if periodo not in dict(PERIODOS):
+            periodo = "mes"
+        ini, fin, ant_ini, ant_fin, texto, texto_ant = _rango(periodo, hoy)
     qs = list(_filtrar(base, ini, fin).select_related("capturado_por"))
     anterior = _filtrar(base, ant_ini, ant_fin).count() if ini is not None else None
 
@@ -137,7 +164,8 @@ def calcular(base, periodo, hoy=None):
             danos[_bonito(n)] += 1
         if d.get("alcohol"):
             alcohol += 1
-        if str(d.get("seguro_hdi") or d.get("activa_seguro") or "").upper() in ("SI", "SÍ"):
+        # activación de póliza: campo "¿Se activa póliza?" de generalidades
+        if str(d.get("activa_poliza") or "").upper() in ("SI", "SÍ"):
             hdi += 1
         # causal: catálogo fijo; lo que no está en la lista (o "Otros") cuenta como Otros
         causal = (d.get("causal") or "").strip().upper()
@@ -161,7 +189,7 @@ def calcular(base, periodo, hoy=None):
         se_retiran += retiran
         cod_reporte = Counter((x.get("codigo") or "SIN").upper() for x in les)
         codigos.update(cod_reporte)
-        activa = str(d.get("seguro_hdi") or d.get("activa_seguro") or "").upper() in ("SI", "SÍ")
+        activa = str(d.get("activa_poliza") or "").upper() in ("SI", "SÍ")
         # renglón semanal
         f = _fecha(s)
         lunes = f - timedelta(days=f.weekday())
@@ -190,7 +218,25 @@ def calcular(base, periodo, hoy=None):
     # tendencia: por día (hoy, 7 días, mes) o por mes (año, todo)
     por_fecha = Counter(_fecha(s) for s in qs)
     tendencia = []
-    if periodo in ("hoy", "semana"):
+    if periodo == "rango" and (fin - ini).days <= 62:
+        dias = [ini + timedelta(days=i) for i in range((fin - ini).days + 1)]
+        varios_meses = ini.month != fin.month or ini.year != fin.year
+        for dia in dias:
+            etq = f"{dia.day} {MESES[dia.month - 1]}" if varios_meses or len(dias) <= 7 else str(dia.day)
+            tendencia.append((etq, por_fecha.get(dia, 0), dia == hoy))
+        titulo_tend = f"Reportes por día · {texto}"
+    elif periodo == "rango":
+        y, m = ini.year, ini.month
+        claves = []
+        while (y, m) <= (fin.year, fin.month):
+            claves.append((y, m))
+            y, m = (y, m + 1) if m < 12 else (y + 1, 1)
+        meses = Counter((f.year, f.month) for f in por_fecha.elements())
+        for (y, m) in claves:
+            etq = MESES[m - 1] + (f" {str(y)[2:]}" if ini.year != fin.year else "")
+            tendencia.append((etq, meses.get((y, m), 0), (y, m) == (hoy.year, hoy.month)))
+        titulo_tend = f"Reportes por mes · {texto}"
+    elif periodo in ("hoy", "semana"):
         for i in range(6, -1, -1):
             dia = hoy - timedelta(days=i)
             tendencia.append((f"{dia.day} {MESES[dia.month - 1]}", por_fecha.get(dia, 0), dia == hoy))
@@ -235,7 +281,8 @@ def calcular(base, periodo, hoy=None):
             delta_txt = f"{'▲ +' if dif > 0 else '▼ ' if dif < 0 else '= '}{dif}"
 
     return {
-        "periodo": periodo, "periodos": PERIODOS, "texto": texto, "texto_ant": texto_ant,
+        "periodo": periodo, "periodos": PERIODOS,
+        "desde": ini.isoformat() if periodo == "rango" else "", "hasta": fin.isoformat() if periodo == "rango" else "", "texto": texto, "texto_ant": texto_ant,
         "total": total, "anterior": anterior, "delta": delta, "delta_txt": delta_txt,
         "siniestros": len(sin), "liberaciones": len(lib),
         "resp_si": resp["SI"], "resp_no": resp["NO"], "resp_sd": resp["SD"],
