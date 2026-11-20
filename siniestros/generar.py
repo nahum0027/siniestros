@@ -216,7 +216,10 @@ def llenar_htt(datos, salida):
 
     for fila, les in zip(LESIONADOS_FILAS, datos.get("lesionados", [])):
         for campo, col in LESIONADOS_COLS:
-            _escribir(ws, f"{col}{fila}", les.get(campo, ""))
+            valor = les.get(campo, "")
+            if campo == "pase_medico":  # Sí / No (antes era texto libre: se respeta lo capturado)
+                valor = {"SI": "Sí", "NO": "No"}.get(str(valor).upper(), valor)
+            _escribir(ws, f"{col}{fila}", valor)
 
     # anexos: lista de 6 dicts {"aplica": True/False/None, "art": "", "fracc": ""}
     for fila, anexo in zip(ANEXOS, datos.get("anexos", [])):

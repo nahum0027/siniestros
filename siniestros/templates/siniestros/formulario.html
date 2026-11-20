@@ -585,7 +585,9 @@ function pintarLesionados() {
       <div class="campo"><label>Dirección</label><input type="text" name="lesionados.${i}.direccion"></div>
       <div class="fila">
         <div class="campo"><label>Teléfono</label><input type="tel" name="lesionados.${i}.telefono"></div>
-        <div class="campo"><label>Pase médico</label><input type="text" name="lesionados.${i}.pase_medico"></div>
+        <div class="campo"><span class="etq">Pase médico</span>
+          <div class="seg"><label><input type="radio" name="lesionados.${i}.pase_medico" value="SI"><span>Sí</span></label><label><input type="radio" name="lesionados.${i}.pase_medico" value="NO"><span>No</span></label></div>
+        </div>
       </div>
       <div class="fila">
         <div class="campo"><label>Código</label><select name="lesionados.${i}.codigo"><option value="">—</option><option value="VERDE">Verde</option><option value="AMARILLO">Amarillo</option><option value="ROJO">Rojo</option><option value="NEGRO">Negro</option></select></div>

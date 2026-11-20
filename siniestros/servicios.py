@@ -99,8 +99,14 @@ CAMPOS_PARTICIPE = {
     "liberada": "Unidad liberada", "liberada_destino": "Unidad liberada · destino",
     "trasladado_a": "Trasladado a", "disposicion": "A disposición de",
 }
+def texto_pase(valor):
+    """Pase médico del lesionado (Sí/No; los reportes viejos traen el folio en texto libre)."""
+    v = str(valor or "").strip()
+    return {"SI": "Pase médico: sí", "NO": "Sin pase médico"}.get(v.upper(), f"Pase {v}" if v else "")
+
+
 CAMPOS_LESIONADO = {"nombre": "Nombre", "direccion": "Dirección", "telefono": "Teléfono",
-                    "pase_medico": "Pase médico", "trasladado_a": "Trasladado a",
+                    "pase_medico": "¿Se otorga pase médico?", "trasladado_a": "Trasladado a",
                     "codigo": "Código", "se_retira": "Se retira del lugar"}
 
 
@@ -416,7 +422,7 @@ def resumen_secciones(s):
     les = [l for l in d.get("lesionados") or [] if (l.get("nombre") or "").strip()]
     if les:
         secciones.append(("LESIONADOS", [(f"{i}. {l['nombre']}", " · ".join(x for x in (
-            l.get("direccion") or "", l.get("telefono") or "", f"Pase {l['pase_medico']}" if l.get("pase_medico") else "",
+            l.get("direccion") or "", l.get("telefono") or "", texto_pase(l.get("pase_medico")),
             f"Trasladado a {l['trasladado_a']}" if l.get("trasladado_a") else "",
             f"Código {l['codigo'].lower()}" if l.get("codigo") else "",
             "Se retira del lugar" if l.get("se_retira") else "") if x) or "—") for i, l in enumerate(les, 1)]))

@@ -148,7 +148,7 @@ dd.vacio-c{color:#a3b0ba;font-weight:400}
     {% if d.lesionados %}
     <section class="card"><h2>Lesionados</h2><dl>
       {% for l in d.lesionados %}{% if l.nombre %}
-      <div class="ancho"><dt>{{ forloop.counter }}. {{ l.nombre }}</dt><dd>{{ l.direccion|default:"" }} {% if l.telefono %}· {{ l.telefono }}{% endif %} {% if l.pase_medico %}· Pase {{ l.pase_medico }}{% endif %} {% if l.trasladado_a %}· Trasladado a {{ l.trasladado_a }}{% endif %} {% if l.codigo %}· Código {{ l.codigo|lower }}{% endif %} {% if l.se_retira %}· Se retira del lugar{% endif %}</dd></div>
+      <div class="ancho"><dt>{{ forloop.counter }}. {{ l.nombre }}</dt><dd>{{ l.direccion|default:"" }} {% if l.telefono %}· {{ l.telefono }}{% endif %} {% if l.pase_medico == "SI" %}· Pase médico: sí{% elif l.pase_medico == "NO" %}· Sin pase médico{% elif l.pase_medico %}· Pase {{ l.pase_medico }}{% endif %} {% if l.trasladado_a %}· Trasladado a {{ l.trasladado_a }}{% endif %} {% if l.codigo %}· Código {{ l.codigo|lower }}{% endif %} {% if l.se_retira %}· Se retira del lugar{% endif %}</dd></div>
       {% endif %}{% endfor %}
     </dl></section>
     {% endif %}
