@@ -100,8 +100,9 @@
 .ley .si i{background:#b42318}.ley .no i{background:#11735a}.ley .sd i{background:#c9d2d9}
 .ley b{font-variant-numeric:tabular-nums}
 .kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
-@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi.prin{grid-column:1/-1}}
-@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi.prin,.kpis>.kpi:last-child{grid-column:span 2}}
+.kpi.prin{grid-column:span 2}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi.prin{grid-column:auto}}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi.prin{grid-column:span 2}}
 .codigos{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
 .cod{white-space:nowrap}
 .cod i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0;border:1px solid rgba(0,0,0,.15)}
@@ -164,7 +165,6 @@
     <div class="kpi"><span class="et">Activación de póliza</span><span class="num">{{ t.hdi }}</span><span class="det"><b>{{ t.hdi_pct }}%</b> de los reportes</span></div>
     <div class="kpi"><span class="et">Lesionados</span><span class="num">{{ t.lesionados }}</span>
       <span class="det codigos">{% for n, c, cls in t.codigos %}<span class="cod {{ cls }}" title="Código {{ n|lower }}"><i></i>{{ n }} <b>{{ c }}</b></span>{% endfor %}{% if t.sin_codigo %}<span class="cod sin"><i></i>Sin código <b>{{ t.sin_codigo }}</b></span>{% endif %}</span></div>
-    <div class="kpi"><span class="et">Se retira del lugar</span><span class="num">{{ t.se_retiran }}</span><span class="det">lesionado{{ t.se_retiran|pluralize }}</span></div>
     <div class="kpi"><span class="et">Pases médicos otorgados</span><span class="num">{{ t.pases_otorgados }}</span><span class="det">pase{{ t.pases_otorgados|pluralize }} que otorgamos a lesionados<br><b>{{ t.pases }}</b> reporte{{ t.pases|pluralize }} con motivo "Pases médicos"</span></div>
     <div class="kpi"><span class="et">Nos garantizan</span><span class="num">{{ t.garantizan }}</span><span class="det">motivo de activación</span></div>
     <div class="kpi"><span class="et">Garantizamos a tercero</span><span class="num">{{ t.garantizamos }}</span><span class="det">motivo de activación</span></div>
