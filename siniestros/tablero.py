@@ -172,10 +172,11 @@ def calcular(base, periodo, hoy=None, desde=None, hasta=None):
         no_dimensionar += es_no_dim
         motivo = normalizar_motivo(d.get("motivo_activacion"))
         # activación de póliza: "¿Se activa seguro HDI?" = Sí (Seguros), "¿Se activa póliza?" = Sí
-        # (Generalidades) o un motivo de activación capturado (cualquiera menos N/A)
+        # (Generalidades) o un motivo de activación capturado (cualquiera menos N/A).
+        # Si el motivo es "Nos garantizan" NO cuenta como activación (lo cubre el tercero).
         activa = (any(str(d.get(c) or "").strip().upper() in ("SI", "SÍ")
                       for c in ("seguro_hdi", "activa_seguro", "activa_poliza"))
-                  or bool(motivo))
+                  or bool(motivo)) and motivo != "NOS GARANTIZAN"
         hdi += activa
         if motivo:
             motivos[dict(MOTIVOS_ACTIVACION).get(motivo, "Otros")] += 1
