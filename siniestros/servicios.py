@@ -83,7 +83,7 @@ ETIQUETAS = {
     "motivo_activacion": "Motivo de activación", "pase_medico": "Pase médico",
     "alcohol_autoridad": "Autoridad que arriba (alcohol)", "alcohol_conductor": "Conductor con alcohol",
     "alcohol_grados": "Grados de alcohol",
-    "notas_internas": "Notas", "seguro_hdi": "¿Se activa seguro HDI?", "enviar_a": "Liberada, enviar a", "hay_participe": "Hubo otro partícipe",
+    "notas_internas": "Notas", "seguro_hdi": "¿Se activa seguro HDI?", "activa_poliza": "¿Se activa póliza?", "enviar_a": "Liberada, enviar a", "hay_participe": "Hubo otro partícipe",
     "danos": "Hay daños", "danos_cristal": "Daño: cristal", "danos_carroceria": "Daño: carrocería",
     "danos_retrovisor": "Daño: retrovisor", "danos_rack": "Daño: rack",
     "croquis": "Croquis", "firma_ejecutivo": "Firma del ejecutivo", "firma_agente": "Firma del agente",
@@ -374,7 +374,7 @@ def resumen_secciones(s):
         quien = {"A": "ejecutivo", "B": "otro conductor"}.get(d.get("alcohol_conductor"), "")
         gen = [("Liberada, enviar a", v(d.get("enviar_a"))), ("Causal", v(causal_texto(d))),
                ("Colisión", v(d.get("colision"))), ("Unidad responsable", sino(d.get("responsable"))),
-               ("Medio de prueba", v(d.get("medio_prueba")))]
+               ("¿Se activa póliza?", sino(d.get("activa_poliza"))), ("Medio de prueba", v(d.get("medio_prueba")))]
         gen += [("Daños", danos)] if d.get("danos") else []
         gen += alcohol(quien)
         gen += [("Nota", v(d.get("nota")))] if d.get("nota") else []
@@ -421,7 +421,7 @@ def resumen_secciones(s):
             f"Código {l['codigo'].lower()}" if l.get("codigo") else "",
             "Se retira del lugar" if l.get("se_retira") else "") if x) or "—") for i, l in enumerate(les, 1)]))
     gen = [("Causal", v(causal_texto(d))), ("Colisión", v(d.get("colision"))), ("Unidad responsable", v(d.get("responsable"))),
-           ("Medio de prueba", v(d.get("medio_prueba"))), ("¿Se activa seguro HDI?", sino(d.get("seguro_hdi"))),
+           ("¿Se activa póliza?", sino(d.get("activa_poliza"))), ("Medio de prueba", v(d.get("medio_prueba"))), ("¿Se activa seguro HDI?", sino(d.get("seguro_hdi"))),
            ("Motivo de activación", d.get("motivo_activacion") or "N/A"),
            ("Seguro A / garantiza", f"HDI SEGUROS / {v(a.get('garantiza'))}")]
     if not d.get("b_no_aplica"):

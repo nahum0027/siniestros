@@ -84,7 +84,8 @@ def inicio(request):
         "total": base.count(), "pendientes": base.filter(estado__in=pendientes).count(),
         "recientes": base.select_related("capturado_por")[:5],
         # tablero con números y gráficas: revisores y administradores
-        "t": tablero.calcular(base, request.GET.get("periodo", "mes")) if sv.puede_revisar(u) else None,
+        "t": tablero.calcular(base, request.GET.get("periodo", "mes"),
+                              desde=request.GET.get("desde"), hasta=request.GET.get("hasta")) if sv.puede_revisar(u) else None,
     })
 
 
@@ -420,7 +421,7 @@ from datetime import date as _date
 CAMPOS_LIB = ["fecha", "ejecutivo", "no_empleado", "economico", "ruta",
               "activa_seguro", "motivo_activacion", "causal", "causal_otro", "pase_medico",
               # generalidades (igual que en el reporte de campo, sin anexos)
-              "enviar_a", "colision", "responsable", "medio_prueba", "nota",
+              "enviar_a", "colision", "responsable", "activa_poliza", "medio_prueba", "nota",
               "alcohol_autoridad", "alcohol_conductor", "alcohol_grados", "b",
               "notas_internas"]  # solo plataforma: no va en el Word/PDF
 CASILLAS_LIB = ["danos", "danos_cristal", "danos_carroceria", "danos_retrovisor", "danos_rack", "alcohol", "hay_participe"]

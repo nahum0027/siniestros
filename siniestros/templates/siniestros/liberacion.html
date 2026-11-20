@@ -88,6 +88,12 @@
             <label><input type="radio" name="responsable" value="NO" {% if d.responsable == "NO" %}checked{% endif %}><span>No</span></label>
           </div>
         </div>
+        <div class="c2"><span class="etq">¿Se activa póliza?</span>
+          <div class="seg">
+            <label><input type="radio" name="activa_poliza" value="SI" {% if d.activa_poliza == "SI" %}checked{% endif %}><span>Sí</span></label>
+            <label><input type="radio" name="activa_poliza" value="NO" {% if d.activa_poliza == "NO" %}checked{% endif %}><span>No</span></label>
+          </div>
+        </div>
         <div class="c2"><label for="medio_prueba">Medio de prueba</label><input id="medio_prueba" name="medio_prueba" list="pruebas" value="{{ d.medio_prueba|default:'' }}"></div>
         <div class="c4"><label for="nota">Nota</label><input id="nota" name="nota" value="{{ d.nota|default:'' }}"></div>
         <div class="c2">
