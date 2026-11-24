@@ -60,9 +60,11 @@ def inicio(request):
     u = request.user
     puede_capturar, revisor, lib = u.has_perm("siniestros.capturar_siniestro"), sv.ve_todo(u), sv.puede_liberar(u)
     llenar_lib = sv.puede_llenar_liberacion(u)
+    # rol Consulta: ve el tablero de inicio y el apartado de reportes (sin capturar ni revisar)
+    consulta = u.has_perm("siniestros.consultar_siniestro") and not sv.puede_revisar(u)
     if puede_capturar and not revisor and not llenar_lib:
         return redirect("formulario")
-    if not sv.puede_revisar(u) and not llenar_lib:  # rol Consulta: solo tiene el apartado de reportes
+    if not sv.puede_revisar(u) and not llenar_lib and not consulta:
         return redirect("lista")
     if revisor:
         base = Siniestro.objects.all()
@@ -76,16 +78,17 @@ def inicio(request):
     S, L = Siniestro.Tipo.SINIESTRO, Siniestro.Tipo.LIBERACION
     return render(request, "siniestros/inicio.html", {
         "puede_capturar": puede_capturar, "revisor": revisor, "puede_liberar": lib, "llenar_lib": llenar_lib,
-        "puede_validar": sv.puede_revisar(u),
+        "puede_validar": sv.puede_revisar(u), "consulta": consulta,
         "sin_pend": base.filter(tipo=S, estado__in=pendientes).count(),
         "sin_hoy": base.filter(tipo=S, creado__date=hoy).count(),
         "lib_pend": base.filter(tipo=L, estado__in=pendientes).count(),
         "lib_hoy": base.filter(tipo=L, creado__date=hoy).count(),
         "total": base.count(), "pendientes": base.filter(estado__in=pendientes).count(),
         "recientes": base.select_related("capturado_por")[:5],
-        # tablero con números y gráficas: revisores y administradores
+        # tablero con números y gráficas: revisores, administradores y rol Consulta
         "t": tablero.calcular(base, request.GET.get("periodo", "mes"),
-                              desde=request.GET.get("desde"), hasta=request.GET.get("hasta")) if sv.puede_revisar(u) else None,
+                              desde=request.GET.get("desde"), hasta=request.GET.get("hasta"))
+             if sv.puede_revisar(u) or consulta else None,
     })
 
 

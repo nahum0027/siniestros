@@ -171,12 +171,10 @@ def calcular(base, periodo, hoy=None, desde=None, hasta=None):
         es_no_dim = causal == "NO DIMENSIONA"  # igual que el Excel: solo "No dimensiona" (no "Tercero no dimensiona")
         no_dimensionar += es_no_dim
         motivo = normalizar_motivo(d.get("motivo_activacion"))
-        # activación de póliza: "¿Se activa seguro HDI?" = Sí (Seguros), "¿Se activa póliza?" = Sí
-        # (Generalidades) o un motivo de activación capturado (cualquiera menos N/A).
+        # activación de póliza: solo el campo "¿Se activa póliza?" = Sí (Generalidades).
         # Si el motivo es "Nos garantizan" NO cuenta como activación (lo cubre el tercero).
-        activa = (any(str(d.get(c) or "").strip().upper() in ("SI", "SÍ")
-                      for c in ("seguro_hdi", "activa_seguro", "activa_poliza"))
-                  or bool(motivo)) and motivo != "NOS GARANTIZAN"
+        activa = (str(d.get("activa_poliza") or "").strip().upper() in ("SI", "SÍ")
+                  and motivo != "NOS GARANTIZAN")
         hdi += activa
         if motivo:
             motivos[dict(MOTIVOS_ACTIVACION).get(motivo, "Otros")] += 1

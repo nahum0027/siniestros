@@ -110,7 +110,7 @@
 {% block contenido %}
 <div class="saludo">
   <h1>Hola, {{ user.first_name|default:user.username }}</h1>
-  <p class="sub" style="margin:0">{% if pendientes %}Hay <b>{{ pendientes }}</b> reporte{{ pendientes|pluralize }} pendiente{{ pendientes|pluralize }} de revisar.{% else %}No hay reportes pendientes de revisar.{% endif %}</p>
+  <p class="sub" style="margin:0">{% if consulta %}Indicadores de siniestros y liberaciones.{% elif pendientes %}Hay <b>{{ pendientes }}</b> reporte{{ pendientes|pluralize }} pendiente{{ pendientes|pluralize }} de revisar.{% else %}No hay reportes pendientes de revisar.{% endif %}</p>
 </div>
 
 <div class="modulos{% if t %} compactos{% endif %}">
@@ -133,7 +133,7 @@
   <a class="mod m-rep" href="{% url 'lista' %}">
     <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></span>
     <h2>{% if revisor %}Reportes{% else %}Mis reportes{% endif %}</h2>
-    <p>{% if puede_validar %}Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.{% elif puede_liberar %}Consulta, busca y corrige liberaciones exprés. Descarga los formatos.{% else %}Consulta y busca siniestros y liberaciones. Descarga los formatos en Word, Excel o PDF.{% endif %}</p>
+    <p>{% if puede_validar %}Consulta, busca, corrige y valida siniestros y liberaciones. Descarga los formatos y revisa el historial.{% elif puede_liberar %}Consulta, busca y corrige liberaciones exprés. Descarga los formatos.{% elif consulta %}Consulta y busca siniestros y liberaciones, copia el resumen y descarga los formatos en PDF.{% else %}Consulta y busca siniestros y liberaciones. Descarga los formatos en Word, Excel o PDF.{% endif %}</p>
     <div class="pie"><span class="dato"><b>{{ total }}</b> en total</span><span class="ir">Ver →</span></div>
   </a>
 </div>
